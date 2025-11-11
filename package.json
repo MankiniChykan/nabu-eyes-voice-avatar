@@ -9,6 +9,7 @@
     "release": "node ./tools/release.js",
     "release:dev": "node ./tools/release.js"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/user/nabu-eyes-voice-avatar.git"

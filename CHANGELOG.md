@@ -3,6 +3,16 @@ nabu-eyes-voice-avatar
 All notable changes to this project are documented here.
 This project follows Semantic Versioning: MAJOR.MINOR.PATCH.
 
+[0.0.2] – 2025-11-13
+Added
+
+- Enforced semantic-version monotonicity in the release helper and clarified prerelease handling so `npm run release` fails fast when a version is missing from the changelog or regresses the package version.
+- Converted project tooling to explicit CommonJS modules and marked the package as ESM to satisfy HACS repository structure validation and eliminate Rollup build warnings.
+
+Changed
+
+- Normalised project metadata so the published package version matches the initial release baseline.
+
 [0.0.1] – 2025-11-12
 Added
 
