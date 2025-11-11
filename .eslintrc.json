@@ -4,17 +4,15 @@
     "browser": true,
     "es2021": true
   },
-  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:lit/recommended",
+    "plugin:prettier/recommended"
+  ],
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["lit", "@typescript-eslint"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:lit/recommended",
-    "plugin:prettier/recommended"
-  ],
+  "plugins": ["lit"],
   "ignorePatterns": ["dist"]
 }

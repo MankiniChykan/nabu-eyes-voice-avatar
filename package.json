@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "name": "nabu-eyes-voice-avatar",
   "version": "0.1.0",
   "description": "Nabu Eyes dashboard custom card for Home Assistant",
@@ -19,29 +18,20 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
-    "smob": "^0.0.6",
     "@types/lodash": "^4.14.202",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-lit": "1.11.0",
+    "eslint-plugin-lit": "^2.1.1",
     "eslint-plugin-prettier": "^5.1.3",
-    "parse5": "^7.1.2",
-    "parse5-htmlparser2-tree-adapter": "^7.1.0",
-    "requireindex": "^1.2.0",
-    "domhandler": "^5.0.3",
     "lit": "^3.1.0",
     "prettier": "^3.2.5",
     "rollup": "^4.13.0",
     "rollup-plugin-typescript2": "^0.36.0",
+    "smob": "^1.5.0",
     "tslib": "^2.6.2",
     "typescript": "^5.4.2"
   },
   "dependencies": {
     "custom-card-helpers": "^1.9.0"
-  },
-  "overrides": {
-    "eslint-plugin-lit": "1.11.0"
   }
 }
