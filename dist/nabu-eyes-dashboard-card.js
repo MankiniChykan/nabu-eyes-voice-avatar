@@ -84,17 +84,54 @@ class NabuEyesDashboardCard extends LitElement {
       assist_entities: Array.isArray(config.assist_entities) ? [...config.assist_entities] : []
     };
 
-    normalizedConfig.countdown_events = [...(normalizedConfig.countdown_events || [])];
-    normalizedConfig.countdown_clear_events = [
-      ...(normalizedConfig.countdown_clear_events || [])
-    ];
-    normalizedConfig.alarm_events = [...(normalizedConfig.alarm_events || [])];
-    normalizedConfig.alarm_clear_events = [...(normalizedConfig.alarm_clear_events || [])];
-    normalizedConfig.alarm_entities = [...(normalizedConfig.alarm_entities || [])];
-    normalizedConfig.alarm_active_states = [...(normalizedConfig.alarm_active_states || [])];
+    normalizedConfig.assist_entities = (normalizedConfig.assist_entities || [])
+      .map((entityId) => (entityId == null ? void 0 : entityId.trim()))
+      .filter((entityId) => !!(entityId != null && entityId.length));
+
+    if (!normalizedConfig.assist_entities.length) {
+      throw new Error('You must configure at least one Assist Satellite entity.');
+    }
+
+    normalizedConfig.countdown_events = this._normalizeStringArray(
+      normalizedConfig.countdown_events
+    );
+    normalizedConfig.countdown_clear_events = this._normalizeStringArray(
+      normalizedConfig.countdown_clear_events
+    );
+    normalizedConfig.alarm_events = this._normalizeStringArray(normalizedConfig.alarm_events);
+    normalizedConfig.alarm_clear_events = this._normalizeStringArray(
+      normalizedConfig.alarm_clear_events
+    );
+    normalizedConfig.alarm_entities = this._normalizeStringArray(normalizedConfig.alarm_entities);
+    normalizedConfig.alarm_active_states = this._normalizeStringArray(
+      normalizedConfig.alarm_active_states && normalizedConfig.alarm_active_states.length
+        ? normalizedConfig.alarm_active_states
+        : [...DEFAULT_ALARM_ACTIVE_STATES]
+    );
+
+    if (!normalizedConfig.playing_variant || !(normalizedConfig.playing_variant in PLAYING_VARIANTS)) {
+      normalizedConfig.playing_variant = 'nabu_playing_dash.gif';
+    }
+
+    if (
+      normalizedConfig.media_player_equalizer &&
+      !(normalizedConfig.media_player_equalizer in EQUALIZER_VARIANTS)
+    ) {
+      normalizedConfig.media_player_equalizer = 'nabu_equalizer_dash.gif';
+    }
 
     this._config = normalizedConfig;
     this._subscribeToEvents();
+  }
+
+  _normalizeStringArray(values) {
+    return Array.from(
+      new Set(
+        (values || [])
+          .map((value) => (value == null ? void 0 : value.trim()))
+          .filter((value) => !!(value != null && value.length))
+      )
+    );
   }
 
   disconnectedCallback() {
@@ -181,8 +218,6 @@ class NabuEyesDashboardCard extends LitElement {
         this._alarmActive = !!eventData.active;
       }
     }
-
-    this.requestUpdate();
   }
 
   getCardSize() {
@@ -330,7 +365,7 @@ class NabuEyesDashboardCard extends LitElement {
       return undefined;
     }
 
-    const priority = ['responding', 'processing', 'listening', 'playing', 'idle'];
+    const priority = ['responding', 'playing', 'processing', 'listening', 'idle'];
 
     const states = this._config.assist_entities
       .map((entityId) => {

@@ -57,6 +57,23 @@ alarm_clear_events:
   - assist_satellite_timer_cleared
 ```
 
+### Configuration Options
+
+- **assist_entities** (required): One or more Assist Satellite entities that drive the base
+  animation state of the card. The card hides itself when every satellite reports `idle` if
+  `hide_when_idle` is enabled.
+- **hide_when_idle**: When `true`, the card disappears if all tracked satellites are idle. Set to
+  `false` to always show the idle animation.
+- **media_player**: Media player entity that controls the equalizer animation while it is playing.
+- **mute_media_player**: Media player entity that controls the mute overlay. Defaults to the same
+  entity as `media_player`.
+- **asset_path**: Path to the folder (served from `/local`) that contains the GIF assets.
+- **countdown_events** / **countdown_clear_events**: Home Assistant event types that toggle the
+  countdown animation on or off.
+- **alarm_events** / **alarm_clear_events**: Event types that toggle the alarm animation.
+- **alarm_entities**: Binary entities (doorbells, switches, etc.) that can also activate the alarm
+  animation when their state matches `alarm_active_states`.
+
 ### Development
 
 Install dependencies and build the card with:
