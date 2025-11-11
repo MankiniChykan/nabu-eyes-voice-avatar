@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build:
+    name: Build card bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect dependency lockfile
+        id: lockfile
+        shell: bash
+        run: |
+          if compgen -G "package-lock.json npm-shrinkwrap.json yarn.lock" > /dev/null; then
+            echo "has_lock=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_lock=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Use Node.js with npm cache
+        if: steps.lockfile.outputs.has_lock == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Use Node.js without cache
+        if: steps.lockfile.outputs.has_lock != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Lint sources
+        run: npm run lint
+
+      - name: Build bundle
+        run: npm run build
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nabu-eyes-dashboard-card
+          path: dist
+          if-no-files-found: error
