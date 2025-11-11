@@ -9,6 +9,7 @@
     "plugin:lit/recommended",
     "plugin:prettier/recommended"
   ],
+  "parser": "./tools/eslint-typescript-parser.js",
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module"
