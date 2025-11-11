@@ -36,27 +36,6 @@ if (!fs.existsSync(distPath)) {
   fail('Build output not found. Run "npm run build" before creating a release.');
 }
 
-const hacsConfigPath = path.resolve(process.cwd(), 'hacs.json');
-if (!fs.existsSync(hacsConfigPath)) {
-  fail('hacs.json is missing. Ensure the repository is HACS-compliant before releasing.');
-}
-
-let hacsConfig;
-try {
-  hacsConfig = JSON.parse(fs.readFileSync(hacsConfigPath, 'utf8'));
-} catch (error) {
-  fail(`Unable to parse hacs.json: ${error.message}`);
-}
-
-if (!hacsConfig.filename || typeof hacsConfig.filename !== 'string') {
-  fail('hacs.json must define a "filename" pointing to the built bundle.');
-}
-
-const hacsBundlePath = path.resolve(process.cwd(), hacsConfig.filename);
-if (hacsBundlePath !== distPath) {
-  fail('hacs.json filename must reference dist/nabu-eyes-dashboard-card.js.');
-}
-
 if (!isDevRelease) {
   const changelogPath = path.resolve(process.cwd(), 'CHANGELOG.md');
   if (!fs.existsSync(changelogPath)) {
