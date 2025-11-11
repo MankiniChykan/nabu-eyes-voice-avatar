@@ -10,6 +10,10 @@ import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 type HaSelectElement = HTMLElement & { value?: string };
 type HaSwitchElement = HTMLElement & { checked?: boolean };
 
+/**
+ * Configuration UI for the Nabu Eyes dashboard card allowing users to map
+ * Assist entities, event triggers, and asset preferences.
+ */
 export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceCardEditor {
   public hass!: HomeAssistant;
   private _config?: NabuEyesDashboardCardConfig;

@@ -8,6 +8,11 @@ import {
   STATE_ASSET_MAP
 } from './const';
 
+/**
+ * Configuration schema for the Nabu Eyes dashboard card.
+ * Extends the core Lovelace card config with Assist and media specific options
+ * to control avatar state rendering and event subscriptions.
+ */
 export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   name?: string;
   assist_entities: string[];
@@ -35,6 +40,10 @@ type UnsubscribeFunc = () => void;
 const STATE_ASSET_MAP_TYPED: Record<NabuEyesAssistState | NabuEyesPseudoState, string> =
   STATE_ASSET_MAP;
 
+/**
+ * Lit-based Lovelace card that visualises the Nabu Eyes avatar state based on
+ * Assist satellites, media players, and Home Assistant events.
+ */
 export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   public hass!: HomeAssistant;
   private _config?: NabuEyesDashboardCardConfig;
