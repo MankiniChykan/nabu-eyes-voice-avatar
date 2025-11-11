@@ -218,16 +218,16 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   private _handlePlayingVariant(event: Event): void {
     const target = event.currentTarget as HaSelectElement;
     const value = target?.value;
-    if (value) {
-      this._updateConfig('playing_variant', value as string);
+    if (value && value in PLAYING_VARIANTS) {
+      this._updateConfig('playing_variant', value as keyof typeof PLAYING_VARIANTS);
     }
   }
 
   private _handleEqualizerVariant(event: Event): void {
     const target = event.currentTarget as HaSelectElement;
     const value = target?.value;
-    if (value) {
-      this._updateConfig('media_player_equalizer', value as string);
+    if (value && value in EQUALIZER_VARIANTS) {
+      this._updateConfig('media_player_equalizer', value as keyof typeof EQUALIZER_VARIANTS);
     }
   }
 

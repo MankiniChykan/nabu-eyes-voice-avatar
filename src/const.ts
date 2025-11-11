@@ -30,5 +30,9 @@ export const STATE_ASSET_MAP = {
   mute: 'nabu_mute_dash.gif',
 } as const;
 
-export const DEFAULT_ALARM_ACTIVE_STATES = ['on', 'detected', 'unavailable'] as const;
-export type DefaultAlarmActiveState = (typeof DEFAULT_ALARM_ACTIVE_STATES)[number];
+export type DefaultAlarmActiveState = 'on' | 'detected' | 'unavailable';
+export const DEFAULT_ALARM_ACTIVE_STATES: ReadonlyArray<DefaultAlarmActiveState> = [
+  'on',
+  'detected',
+  'unavailable',
+];

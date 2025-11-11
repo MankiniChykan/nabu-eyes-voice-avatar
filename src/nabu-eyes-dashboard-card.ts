@@ -5,6 +5,7 @@ import {
   LovelaceCardConfig,
   LovelaceCardEditor,
 } from 'custom-card-helpers';
+import type { HassEvent } from 'home-assistant-js-websocket';
 import {
   DEFAULT_ALARM_ACTIVE_STATES,
   DEFAULT_ASSET_PATH,
@@ -32,7 +33,7 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   alarm_events?: string[];
   alarm_clear_events?: string[];
   alarm_entities?: string[];
-  alarm_active_states?: string[];
+  alarm_active_states?: readonly string[];
 }
 
 type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 'playing';
@@ -139,7 +140,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     this._subscribeToEvents();
   }
 
-  private _normalizeStringArray(values?: string[] | null): string[] {
+  private _normalizeStringArray(values?: readonly string[] | null): string[] {
     return Array.from(
       new Set(
         (values ?? [])
@@ -183,8 +184,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         continue;
       }
       try {
-        const unsubscribe = await this.hass.connection.subscribeEvents((event) => {
-          this._handleEvent(type, event.type, event.data);
+        const unsubscribe = await this.hass.connection.subscribeEvents<HassEvent>((event) => {
+          this._handleEvent(type, event.event_type, event.data as Record<string, unknown>);
         }, type);
         this._eventUnsubscribes.push(unsubscribe);
       } catch (err) {
@@ -374,7 +375,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       return false;
     }
 
-    const activeStates = this._config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES;
+    const activeStates: ReadonlyArray<string> =
+      this._config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES;
 
     return this._config.alarm_entities.some((entityId) => {
       const stateObj = this.hass.states[entityId];
