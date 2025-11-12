@@ -5,119 +5,154 @@ Voice Avatar for Home Assistant and Awtrix3 (Ulanzi Clock)
 1. Purpose & Scope
 
 This repository builds a voice-avatar integration for Home Assistant, providing voice-feedback, avatar visualisation, and event-driven interactions.
+
 As an agent working on this repo you will:
 
 Follow the architecture and coding conventions defined here.
 
 Prioritise maintainability, accessibility and performance in voice/UX pipelines.
 
-Assume the user base includes smart-home enthusiasts with some technical ability.
+Assume the user base includes smart-home enthusiasts with technical ability.
 
 2. Agent Role & Behaviour
 
 When assisting with issues, features or code changes you must:
 
-Understand context – examine issue page, PR description, existing code base.
+Understand context – review issue, PR, and code.
 
-Suggest actionable solutions – propose direct code changes, tests, documentation updates.
+Suggest actionable solutions – concrete patches, tests, docs.
 
-Respect constraints – this module is embedded in Home Assistant, so bundle size, runtime dependencies and browser compatibility matter.
+Respect constraints – embedded in Home Assistant; keep bundle small and browser-safe.
 
-Document your advice – always include reasoning, code snippets, and links to documentation when applicable.
+Document your advice – explain reasoning and reference sources.
 
 3. Coding & Architecture Standards
 
-Language: TypeScript (for front-end/dashboard card) and possibly Python or JS backend for voice logic.
+Language: TypeScript (front-end/dashboard card).
 
-Bundling: Using Rollup; keep bundle minimal, tree-shaking enabled.
+Bundler: Rollup with tree-shaking enabled.
 
-Default exports: Use default imports for plugins (e.g., import terser from '@rollup/plugin-terser';).
+Imports: Use default imports for plugins (import terser from '@rollup/plugin-terser').
 
-Immutable defaults: Use readonly for constant arrays, avoid mutating defaults.
+Constants: Use readonly for immutable arrays.
 
-Typing: No any where you can define types. Handle unknown event payloads with proper typings.
+Typing: No any; type events (MessageEvent<any>).
 
-Documentation: Every exported function/class has JSDoc or TS doc-comments explaining purpose, parameters, return.
+Docs: Every exported symbol has JSDoc/TS doc-comments.
 
-Tests: Add unit tests for key logic (state-handling, voice event processing).
+Tests: Add unit tests for state and voice logic.
 
-Linting/Formatting: Follow existing configurations (ESLint + Prettier). Fix warnings before merge.
+Lint/Format: ESLint + Prettier must pass cleanly.
 
-4. Branching / Versioning Policy
+4. Branching / Versioning / Release Policy
 
 main branch = production-ready at all times.
 
-feature/ branches for new features or large refactors.
+feature/ branches for new features; fix/ for bugs.
 
-fix/ branches for bug-fixes only.
+Use semantic versioning (major.minor.patch).
 
-When merging, bump version in package.json according to semantic versioning (major.minor.patch).
+Release Workflow
 
-Dev releases (internal/testing) versus public releases must follow your release commands:
+Bump version in package.json.
 
-Dev: npm run build && npm run release:dev -- 1.0.327-dev.0
+Update CHANGELOG.md and any user-facing files (README, manifest.json).
 
-Prod: npm run build && npm run release -- 1.0.327
+Build the bundle:
 
-5. Review / Pull Request Checklist
+npm run build
 
-Before a PR is ready to merge, ensure:
 
- All new code is typed, documented, and tested.
+Tag and publish the release on GitHub.
 
- Bundle size did not grow dramatically (run rollup --stats or similar).
+Push tag to main so HACS can detect it.
 
- No new warnings or errors in build logs.
+Release Commands
 
- Dependencies added only if strictly necessary, and their licenses are compatible (MIT preferred).
+Dev:
 
- Changes described clearly in PR title/description and linked to issue if relevant.
+npm run build && npm run release:dev -- 1.0.327-dev.0
 
- If user-facing changes: update README or CHANGELOG accordingly.
 
-6. Voice & Interaction Rules
+Prod:
 
-Voice responses should be clear, concise, and context-relevant. Avoid filler words (“um”, “like”).
+npm run build && npm run release -- 1.0.327
 
-Avatar feedback should account for state transitions (e.g., “Alarm triggered”, “All clear”, “System unavailable”).
+5. HACS Compliance Requirements
 
-Keep event handling robust: treat unknown states gracefully. Use defaults such as silent, unavailable.
+This card must be HACS-compliant so that users can install it directly through Home Assistant Community Store.
 
-Any “activeStates” lists should use readonly string[] or proper union types, not mutable string[].
+Agents must ensure:
 
-7. Documentation & User-Guide
+The repository includes a hacs.json with valid metadata (name, filename, homeassistant category).
 
-README.md should reflect latest features and installation steps.
+The main distribution file is built to dist/nabu-eyes-dashboard-card.js.
 
-When you ship a release, update a CHANGELOG.md (if present) or add a release note.
+The version tag matches the release version.
 
-Include a “Troubleshooting” section covering voice engine issues, micro-phone permissions, Home Assistant integration quirks.
+Each release on GitHub has an attached compiled artifact and CHANGELOG entry.
 
-8. Security & Privacy Considerations
+The README includes HACS installation instructions and manual URL (/hacsfiles/nabu-eyes-voice-avatar/nabu-eyes-dashboard-card.js).
 
-Voice input/output may involve user data. Never log sensitive data to public logs.
+Manifest fields (version, resources) are kept in sync with tags.
 
-Introduce default opt-in/opt-out settings for voice logging or analytics.
+6. Review / Pull Request Checklist
 
-Ensure dependencies are up-to-date; run npm audit periodically and fix vulnerabilities.
+Before merging:
 
-9. Known Limitations & Roadmap
+ All new code typed, documented, tested.
 
-Current support: Home Assistant + Awtrix3 / Ulanzi Clock only (others may require adaptation).
+ No build errors or warnings.
 
-Future: Add multi-language TTS/voice support; offline voice engine; improved avatar lip-sync; mobile companion interface.
+ Bundle size stable.
 
-Document issues and roadmap items in GitHub Projects/Issues board with “roadmap” label.
+ Licenses compatible (MIT preferred).
 
-10. Agent Escalation Policy
+ CHANGELOG and README updated for user-visible changes.
 
-If you (as the agent) cannot resolve an issue due to missing specs, unclear requirements, or external dependency constraints:
+7. Voice & Interaction Rules
 
-Flag the issue with label needs-spec or blocked.
+Voice responses concise and contextual.
 
-Clearly indicate what is needed (design doc, API key, voice asset, etc.).
+Avatar animations reflect state transitions.
 
-If security/permission risk: mark security and tag repo owner.
+Handle unknown states gracefully (silent, unavailable).
+
+Use readonly string[] for activeStates.
+
+8. Documentation & User Guide
+
+Keep README.md current with features and install instructions.
+
+Each release must update CHANGELOG.md and publish a GitHub release note.
+
+Add troubleshooting for voice permissions and HA integration.
+
+9. Security & Privacy
+
+Never log private audio data.
+
+Provide opt-in/out for voice logging.
+
+Run npm audit fix regularly.
+
+10. Known Limitations & Roadmap
+
+Current targets: Home Assistant + Awtrix3 / Ulanzi Clock.
+
+Planned: multi-language TTS, offline voice engine, lip-sync, mobile dashboard.
+
+Track via GitHub Projects label roadmap.
+
+11. Agent Escalation Policy
+
+If blocked:
+
+Label issue needs-spec or blocked.
+
+Describe missing information (e.g., API key, design doc).
+
+Tag repo owner for decision.
 
 End of AGENTS.md
-Thank you for keeping the project robust, maintainable and aligned with its mission.
+Thank you for keeping the project HACS-compliant, maintainable and release-ready.
