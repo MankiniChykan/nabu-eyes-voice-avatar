@@ -22,8 +22,9 @@ events published on the Home Assistant event bus.
 
 1. Install the card through HACS or copy the built file from `dist/nabu-eyes-dashboard-card.js` into
    your Home Assistant `www/` directory (typically `/config/www/`).
-2. Copy the animated GIF assets from `src/assets/nabu_eyes_dashboard` into the same folder (for
-   example `/config/www/nabu_eyes_dashboard`).
+2. When installing manually, copy the animated GIF assets from `dist/nabu_eyes_dashboard` into the
+   same folder (for example `/config/www/nabu_eyes_dashboard`). HACS installations bundle these
+   assets automatically under `/hacsfiles/nabu-eyes-voice-avatar/nabu_eyes_dashboard`.
 3. Add the resource reference to Home Assistant:
 
    ```yaml
@@ -47,7 +48,7 @@ media_player: media_player.lounge
 mute_media_player: media_player.lounge
 alarm_entities:
   - binary_sensor.front_doorbell
-asset_path: /local/nabu_eyes_dashboard
+asset_path: /hacsfiles/nabu-eyes-voice-avatar/nabu_eyes_dashboard
 hide_when_idle: true
 playing_variant: nabu_equalizer_dash.gif
 media_player_equalizer: 2px_equalizer_fader_dash.gif
@@ -71,7 +72,9 @@ alarm_clear_events:
 - **media_player**: Media player entity that controls the equalizer animation while it is playing.
 - **mute_media_player**: Media player entity that controls the mute overlay. Defaults to the same
   entity as `media_player`.
-- **asset_path**: Path to the folder (served from `/local`) that contains the GIF assets.
+- **asset_path**: Path to the folder that contains the GIF assets. Defaults to
+  `/hacsfiles/nabu-eyes-voice-avatar/nabu_eyes_dashboard` (the location used by HACS). For manual
+  installations keep the assets under `/local/nabu_eyes_dashboard` and update this value.
 - **countdown_events** / **countdown_clear_events**: Home Assistant event types that toggle the
   countdown animation on or off.
 - **alarm_events** / **alarm_clear_events**: Event types that toggle the alarm animation.

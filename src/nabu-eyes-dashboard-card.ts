@@ -83,6 +83,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       type: 'custom:nabu-eyes-dashboard-card',
       name: 'Nabu Eyes',
       assist_entities: [],
+      asset_path: DEFAULT_ASSET_PATH,
     };
   }
 
@@ -130,6 +131,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         ? normalizedConfig.alarm_active_states
         : [...DEFAULT_ALARM_ACTIVE_STATES],
     );
+
+    const assetPath = normalizedConfig.asset_path?.trim();
+    normalizedConfig.asset_path =
+      assetPath && assetPath.length > 0 ? assetPath : DEFAULT_ASSET_PATH;
 
     if (
       !normalizedConfig.playing_variant ||

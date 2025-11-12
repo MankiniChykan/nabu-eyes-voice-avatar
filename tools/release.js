@@ -213,7 +213,8 @@ const performRelease = async (version, options = {}) => {
   }
 
   try {
-    sh(`git add -f "${js}" "${gz}"`);
+    const forceAddTargets = [`"${js}"`, `"${gz}"`, ...(assetFiles.map((file) => `"${file}"`))];
+    sh(`git add -f ${forceAddTargets.join(' ')}`);
   } catch {}
   try {
     sh(`git commit -m "build: release ${version}"`);

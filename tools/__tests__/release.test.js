@@ -32,8 +32,10 @@ test('creates a release and uploads assets when required', async () => {
   const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'release-test-upload-'));
   const asset = path.join(tempDir, 'nabu-eyes-dashboard-card.js');
   const gz = `${asset}.gz`;
+  const gif = path.join(tempDir, 'nabu_idle_preview_dash.gif');
   fs.writeFileSync(asset, 'console.log("hi");');
   fs.writeFileSync(gz, 'gz-data');
+  fs.writeFileSync(gif, 'gif-data');
 
   const responses = [
     new Response('', { status: 404, statusText: 'Not Found' }),
@@ -52,6 +54,7 @@ test('creates a release and uploads assets when required', async () => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     }),
+    new Response('', { status: 201 }),
     new Response('', { status: 201 }),
     new Response('', { status: 201 }),
   ];
@@ -78,7 +81,7 @@ test('creates a release and uploads assets when required', async () => {
     throw new Error(`Unexpected exec command: ${command}`);
   };
 
-  await ensureReleaseAndUploadAssets('0.0.7', [asset, gz], {
+  await ensureReleaseAndUploadAssets('0.0.7', [asset, gz, gif], {
     token: 'abc123',
     repoSlug: 'owner/repo',
     fetchImpl,
@@ -87,9 +90,11 @@ test('creates a release and uploads assets when required', async () => {
   });
 
   assert.deepEqual(execCalls, ['git rev-parse HEAD']);
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 6);
   assert.match(calls[0].url, /\/tags\/v0\.0\.7$/);
   assert.match(calls[1].url, /\/repos\/owner\/repo\/releases$/);
   assert.match(calls[3].url, /name=nabu-eyes-dashboard-card\.js$/);
   assert.match(calls[4].url, /name=nabu-eyes-dashboard-card\.js\.gz$/);
+  assert.match(calls[5].url, /name=nabu_idle_preview_dash\.gif$/);
+  assert.equal(calls[5].options?.headers?.['Content-Type'], 'image/gif');
 });
