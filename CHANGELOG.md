@@ -3,26 +3,6 @@ nabu-eyes-voice-avatar
 All notable changes to this project are documented here.
 This project follows Semantic Versioning: MAJOR.MINOR.PATCH.
 
-[Unreleased]
-
-Added
-
-- Added a distribution verification script that ensures the compiled bundle
-  lives under `dist/` and is present before packaging releases.
-
-Changed
-
-- Updated the CI and release workflows to run the distribution verification so
-  TypeScript sources never leak outside of `src/` during automation.
-
-Fixed
-
-- Ensured the lint workflow invokes the CommonJS parser directly so ESLint can
-  run under Node.js 24 during local and CI executions.
-
-- Converted the release helper to a native ES module so `npm run release` works in environments that enforce the
-  repository's ESM module mode.
-
 [0.0.2] – 2025-11-13
 Added
 
