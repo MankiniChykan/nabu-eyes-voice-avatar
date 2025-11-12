@@ -1,12 +1,94 @@
-import { createRequire } from 'node:module';
+const ts = require('typescript');
+const espree = require('espree');
+const eslintScope = require('eslint-scope');
+const { visitorKeys: defaultVisitorKeys } = require('eslint-visitor-keys');
 
-const require = createRequire(import.meta.url);
-const parser = require('./eslint-typescript-parser.cjs');
+const DEFAULT_COMPILER_OPTIONS = {
+  target: ts.ScriptTarget.ES2021,
+  module: ts.ModuleKind.ESNext,
+  jsx: ts.JsxEmit.Preserve,
+  useDefineForClassFields: false,
+  removeComments: false,
+  importsNotUsedAsValues: ts.ImportsNotUsedAsValues.Preserve
+};
 
-export const parse = parser.parse;
-export const parseForESLint = parser.parseForESLint;
+function normalizeEcmaVersion(ecmaVersion) {
+  if (!ecmaVersion || ecmaVersion === 'latest') {
+    return 2022;
+  }
 
-export default {
-  parse,
-  parseForESLint
+  if (typeof ecmaVersion === 'string') {
+    const parsed = Number.parseInt(ecmaVersion, 10);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+    return 2022;
+  }
+
+  return ecmaVersion;
+}
+
+function createParseOptions(options = {}) {
+  const ecmaVersion = normalizeEcmaVersion(options.ecmaVersion);
+  return {
+    ecmaVersion,
+    sourceType: options.sourceType ?? 'module',
+    ecmaFeatures: options.ecmaFeatures ?? {},
+    loc: true,
+    range: true,
+    comment: true,
+    tokens: true
+  };
+}
+
+function transpile(code, filePath) {
+  const result = ts.transpileModule(code, {
+    compilerOptions: DEFAULT_COMPILER_OPTIONS,
+    fileName: filePath
+  });
+
+  return result.outputText;
+}
+
+function parseInternal(code, options) {
+  const filePath = options && options.filePath ? options.filePath : undefined;
+  const transpiled = transpile(code, filePath);
+  const parseOptions = createParseOptions(options);
+  const ast = espree.parse(transpiled, parseOptions);
+  const tokens = espree.tokenize(transpiled, parseOptions);
+  const comments = ast.comments ?? [];
+  const scopeManager = eslintScope.analyze(ast, {
+    ecmaVersion: parseOptions.ecmaVersion,
+    sourceType: parseOptions.sourceType,
+    ecmaFeatures: parseOptions.ecmaFeatures,
+    ignoreEval: true,
+    impliedStrict: parseOptions.sourceType === 'module'
+  });
+
+  return { ast, tokens, comments, scopeManager, transpiled };
+}
+
+module.exports = {
+  parse(code, options) {
+    return parseInternal(code, options).ast;
+  },
+  parseForESLint(code, options = {}) {
+    const { ast, tokens, comments, scopeManager, transpiled } = parseInternal(
+      code,
+      options
+    );
+
+    return {
+      ast,
+      tokens,
+      comments,
+      scopeManager,
+      visitorKeys: defaultVisitorKeys,
+      services: {
+        getTranspiledSource() {
+          return transpiled;
+        }
+      }
+    };
+  }
 };
