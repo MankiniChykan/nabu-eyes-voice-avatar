@@ -22,7 +22,7 @@ import './editor/nabu-eyes-dashboard-card-editor';
  */
 export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   name?: string;
-  assist_entities: string[];
+  assist_entities?: string[]; // made optional so the editor opens cleanly
   media_player?: string;
   mute_media_player?: string;
   hide_when_idle?: boolean;
@@ -88,9 +88,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   }
 
   public setConfig(config: LovelaceCardConfig): void {
-    if (!config) {
-      throw new Error('Invalid configuration.');
-    }
+    if (!config) throw new Error('Invalid configuration.');
 
     const normalizedConfig: NabuEyesDashboardCardConfig = {
       hide_when_idle: true,
@@ -103,18 +101,12 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       alarm_active_states: DEFAULT_ALARM_ACTIVE_STATES,
       ...config,
       assist_entities: Array.isArray((config as NabuEyesDashboardCardConfig).assist_entities)
-        ? [...(config as NabuEyesDashboardCardConfig).assist_entities]
+        ? [...((config as NabuEyesDashboardCardConfig).assist_entities ?? [])]
         : [],
     };
 
-    normalizedConfig.assist_entities = (normalizedConfig.assist_entities ?? [])
-      .map((entityId) => entityId?.trim())
-      .filter((entityId): entityId is string => !!entityId?.length);
-
-    if (!normalizedConfig.assist_entities.length) {
-      throw new Error('You must configure at least one Assist Satellite entity.');
-    }
-
+    // Trim + dedupe arrays
+    normalizedConfig.assist_entities = this._normalizeStringArray(normalizedConfig.assist_entities);
     normalizedConfig.countdown_events = this._normalizeStringArray(
       normalizedConfig.countdown_events,
     );
@@ -132,17 +124,18 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         : [...DEFAULT_ALARM_ACTIVE_STATES],
     );
 
+    // Asset path default
     const assetPath = normalizedConfig.asset_path?.trim();
     normalizedConfig.asset_path =
       assetPath && assetPath.length > 0 ? assetPath : DEFAULT_ASSET_PATH;
 
+    // Variant guards
     if (
       !normalizedConfig.playing_variant ||
       !(normalizedConfig.playing_variant in PLAYING_VARIANTS)
     ) {
       normalizedConfig.playing_variant = 'nabu_playing_dash.gif';
     }
-
     if (
       normalizedConfig.media_player_equalizer &&
       !(normalizedConfig.media_player_equalizer in EQUALIZER_VARIANTS)
@@ -158,8 +151,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return Array.from(
       new Set(
         (values ?? [])
-          .map((value) => value?.trim())
-          .filter((value): value is string => !!value?.length),
+          .map((v) => v?.trim())
+          .filter((v): v is string => !!v?.length),
       ),
     );
   }
@@ -170,17 +163,12 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   }
 
   protected updated(changedProps: Map<string | number | symbol, unknown>): void {
-    if (changedProps.has('hass')) {
-      this._subscribeToEvents();
-    }
+    if (changedProps.has('hass')) this._subscribeToEvents();
   }
 
   private async _subscribeToEvents(): Promise<void> {
     this._unsubscribeFromEvents();
-
-    if (!this.hass?.connection || !this._config) {
-      return;
-    }
+    if (!this.hass?.connection || !this._config) return;
 
     const eventTypes = new Set<string>([
       ...(this._config.countdown_events ?? []),
@@ -188,15 +176,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       ...(this._config.alarm_events ?? []),
       ...(this._config.alarm_clear_events ?? []),
     ]);
-
-    if (eventTypes.size === 0) {
-      return;
-    }
+    if (eventTypes.size === 0) return;
 
     for (const type of eventTypes) {
-      if (!type) {
-        continue;
-      }
+      if (!type) continue;
       try {
         const unsubscribe = await this.hass.connection.subscribeEvents<HassEvent>((event) => {
           this._handleEvent(type, event.event_type, event.data as Record<string, unknown>);
@@ -211,10 +194,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
   private _unsubscribeFromEvents(): void {
     while (this._eventUnsubscribes.length) {
-      const unsubscribe = this._eventUnsubscribes.pop();
-      if (unsubscribe) {
-        unsubscribe();
-      }
+      const unsub = this._eventUnsubscribes.pop();
+      if (unsub) unsub();
     }
   }
 
@@ -223,13 +204,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     eventType: string,
     eventData: Record<string, unknown>,
   ): void {
-    if (!this._config) {
-      return;
-    }
-
-    if (eventType !== expectedType) {
-      return;
-    }
+    if (!this._config || eventType !== expectedType) return;
 
     const {
       countdown_events = [],
@@ -238,32 +213,22 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       alarm_clear_events = [],
     } = this._config;
 
-    if (countdown_events.includes(eventType)) {
-      this._countdownActive = true;
-    }
-
-    if (countdown_clear_events.includes(eventType)) {
-      this._countdownActive = false;
-    }
-
-    if (alarm_events.includes(eventType)) {
-      this._alarmActive = true;
-    }
-
-    if (alarm_clear_events.includes(eventType)) {
-      this._alarmActive = false;
-    }
+    if (countdown_events.includes(eventType)) this._countdownActive = true;
+    if (countdown_clear_events.includes(eventType)) this._countdownActive = false;
+    if (alarm_events.includes(eventType)) this._alarmActive = true;
+    if (alarm_clear_events.includes(eventType)) this._alarmActive = false;
 
     if (
       eventData &&
       Object.prototype.hasOwnProperty.call(eventData, 'active') &&
-      typeof eventData.active === 'boolean'
+      typeof (eventData as any).active === 'boolean'
     ) {
+      const active = !!(eventData as any).active;
       if (countdown_events.includes(eventType) || countdown_clear_events.includes(eventType)) {
-        this._countdownActive = eventData.active;
+        this._countdownActive = active;
       }
       if (alarm_events.includes(eventType) || alarm_clear_events.includes(eventType)) {
-        this._alarmActive = eventData.active;
+        this._alarmActive = active;
       }
     }
   }
@@ -273,15 +238,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   }
 
   protected render(): TemplateResult {
-    if (!this._config) {
-      return html``;
-    }
+    if (!this._config) return html``;
 
     const asset = this._determineAsset();
-
-    if (!asset) {
-      return html``;
-    }
+    if (!asset) return html``;
 
     return html`
       <ha-card>
@@ -294,9 +254,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   }
 
   private _determineAsset(): string | undefined {
-    if (!this._config) {
-      return undefined;
-    }
+    if (!this._config) return undefined;
 
     const basePath =
       this._config.asset_path && this._config.asset_path.trim().length > 0
@@ -304,13 +262,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         : DEFAULT_ASSET_PATH;
 
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
-    if (alarmActive) {
-      return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.alarm);
-    }
+    if (alarmActive) return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.alarm);
 
-    if (this._countdownActive) {
-      return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.countdown);
-    }
+    if (this._countdownActive) return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.countdown);
 
     const assistState = this._computeAssistState();
 
@@ -325,37 +279,24 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     }
 
     const mediaPlayerAsset = this._determineMediaPlayerAsset(basePath);
-    if (mediaPlayerAsset) {
-      return mediaPlayerAsset;
-    }
+    if (mediaPlayerAsset) return mediaPlayerAsset;
 
     const muteAsset = this._determineMuteAsset(basePath);
-    if (muteAsset) {
-      return muteAsset;
-    }
+    if (muteAsset) return muteAsset;
 
     if (assistState === 'idle') {
-      if (this._config.hide_when_idle) {
-        return undefined;
-      }
+      if (this._config.hide_when_idle) return undefined;
       return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.idle);
     }
 
-    if (this._config.hide_when_idle) {
-      return undefined;
-    }
-
+    if (this._config.hide_when_idle) return undefined;
     return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.idle);
   }
 
   private _determineMediaPlayerAsset(basePath: string): string | undefined {
-    if (!this._config?.media_player || !this.hass) {
-      return undefined;
-    }
+    if (!this._config?.media_player || !this.hass) return undefined;
     const mediaState = this.hass.states[this._config.media_player];
-    if (!mediaState) {
-      return undefined;
-    }
+    if (!mediaState) return undefined;
 
     if (mediaState.state === 'playing') {
       const variant = this._config.media_player_equalizer ?? 'nabu_equalizer_dash.gif';
@@ -367,62 +308,46 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
   private _determineMuteAsset(basePath: string): string | undefined {
     const target = this._config?.mute_media_player ?? this._config?.media_player;
-    if (!target || !this.hass) {
-      return undefined;
-    }
+    if (!target || !this.hass) return undefined;
+
     const stateObj = this.hass.states[target];
-    if (!stateObj) {
-      return undefined;
-    }
+    if (!stateObj) return undefined;
 
     const isMuted = !!stateObj.attributes?.is_volume_muted;
-    if (!isMuted) {
-      return undefined;
-    }
+    if (!isMuted) return undefined;
 
     const filename = stateObj.state === 'off' ? 'nabu_mute_dash.gif' : 'nabu_mute_red_dash.gif';
     return this._composeAssetPath(basePath, filename);
   }
 
   private _isAlarmEntityActive(): boolean {
-    if (!this._config?.alarm_entities?.length || !this.hass) {
-      return false;
-    }
+    if (!this._config?.alarm_entities?.length || !this.hass) return false;
 
     const activeStates: ReadonlyArray<string> =
       this._config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES;
 
     return this._config.alarm_entities.some((entityId) => {
       const stateObj = this.hass.states[entityId];
-      if (!stateObj) {
-        return false;
-      }
+      if (!stateObj) return false;
       return activeStates.includes(stateObj.state);
     });
   }
 
   private _composeAssetPath(basePath: string, filename: string): string {
-    if (!basePath.endsWith('/')) {
-      return `${basePath}/${filename}`;
-    }
+    if (!basePath.endsWith('/')) return `${basePath}/${filename}`;
     return `${basePath}${filename}`;
   }
 
   private _computeAssistState(): NabuEyesAssistState | undefined {
-    if (!this._config?.assist_entities?.length || !this.hass) {
-      return undefined;
-    }
+    if (!this._config?.assist_entities?.length || !this.hass) return undefined;
 
     const states = this._config.assist_entities
       .map((entityId) => this.hass.states[entityId]?.state)
       .filter((state): state is string => typeof state === 'string');
 
     for (const desired of ASSIST_STATE_PRIORITY) {
-      if (states.includes(desired)) {
-        return desired;
-      }
+      if (states.includes(desired)) return desired;
     }
-
     return undefined;
   }
 
@@ -484,7 +409,6 @@ if (!customElements.get(CARD_TAG)) {
 
 if (typeof window !== 'undefined') {
   window.customCards = window.customCards ?? [];
-
   const hasDefinition = window.customCards.some((card) => card.type === CARD_TAG);
   if (!hasDefinition) {
     window.customCards.push({
