@@ -44,8 +44,3 @@ try { sh(`git commit -m "build: release ${version}"`); } catch { console.log('â„
 // tag + push
 try { sh(`git tag -f v${version} -m "v${version}"`); } catch {}
 sh('git push --follow-tags');
-EOF
-
-chmod +x tools/release.js
-git add tools/release.js
-git commit -m "fix(release): valid shebang, dedup imports, remove undefined vars"
