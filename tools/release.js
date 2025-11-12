@@ -157,13 +157,15 @@ const ensureReleaseAndUploadAssets = async (
   const uploadBase = release.upload_url.replace('{?name,label}', '');
   const assetsBaseUrl = `${apiRoot}/repos/${repoSlug}/releases/assets`;
 
-  for (const assetPath of assets) {
-    if (!fsImpl.existsSync(assetPath)) {
-      console.warn(`⚠️  Skipping upload for missing asset: ${assetPath}`);
+  const descriptors = normalizeAssetDescriptors(assets);
+
+  for (const descriptor of descriptors) {
+    if (!fsImpl.existsSync(descriptor.path)) {
+      console.warn(`⚠️  Skipping upload for missing asset: ${descriptor.path}`);
       continue;
     }
 
-    const assetName = path.basename(assetPath);
+    const assetName = descriptor.name;
     if (assetMap.has(assetName)) {
       console.log(`ℹ️  Removing existing asset ${assetName} before upload.`);
       await apiRequest(fetchImpl, `${assetsBaseUrl}/${assetMap.get(assetName)}`, {
