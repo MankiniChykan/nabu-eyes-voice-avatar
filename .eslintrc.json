@@ -19,5 +19,11 @@
     "plugin:lit/recommended",
     "plugin:prettier/recommended"
   ],
-  "ignorePatterns": ["dist/", "node_modules/"]
+  "parser": "./tools/eslint-typescript-parser.js",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["lit"],
+  "ignorePatterns": ["dist"]
 }
