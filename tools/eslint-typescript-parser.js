@@ -1,3 +1,7 @@
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
 const ts = require('typescript');
 const espree = require('espree');
 const eslintScope = require('eslint-scope');
@@ -68,27 +72,31 @@ function parseInternal(code, options) {
   return { ast, tokens, comments, scopeManager, transpiled };
 }
 
-module.exports = {
-  parse(code, options) {
-    return parseInternal(code, options).ast;
-  },
-  parseForESLint(code, options = {}) {
-    const { ast, tokens, comments, scopeManager, transpiled } = parseInternal(
-      code,
-      options
-    );
+export function parse(code, options) {
+  return parseInternal(code, options).ast;
+}
 
-    return {
-      ast,
-      tokens,
-      comments,
-      scopeManager,
-      visitorKeys: defaultVisitorKeys,
-      services: {
-        getTranspiledSource() {
-          return transpiled;
-        }
+export function parseForESLint(code, options = {}) {
+  const { ast, tokens, comments, scopeManager, transpiled } = parseInternal(
+    code,
+    options
+  );
+
+  return {
+    ast,
+    tokens,
+    comments,
+    scopeManager,
+    visitorKeys: defaultVisitorKeys,
+    services: {
+      getTranspiledSource() {
+        return transpiled;
       }
-    };
-  }
+    }
+  };
+}
+
+export default {
+  parse,
+  parseForESLint
 };

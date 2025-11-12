@@ -1,57 +1,65 @@
-#!/usr/bin/env node
-const fs = require('node:fs');
-const path = require('node:path');
-const { execSync } = require('node:child_process');
+// tools/release.js
+// npm run release -- 0.0.3
+import { execSync } from "node:child_process";
+import fs from "node:fs";
 
-function fail(message) {
-  console.error(`\u274c  ${message}`);
+const args = process.argv.slice(2);
+const inputVersion = args.find((arg) => !arg.startsWith("--"));
+if (!inputVersion) {
+  console.error("❌  Provide a version: npm run release -- x.y.z");
   process.exit(1);
 }
 
-const lifecycleEvent = process.env.npm_lifecycle_event || '';
-const isDevRelease = lifecycleEvent === 'release:dev';
-const usage = isDevRelease
-  ? 'Usage: npm run release:dev -- <version>'
-  : 'Usage: npm run release -- <version>';
-const args = process.argv.slice(2);
+const skipChangelog = args.includes("--skip-changelog");
 
-if (args.length === 0 || !args[0]) {
-  fail(usage);
+const normalizedVersion = inputVersion.startsWith("v")
+  ? inputVersion.slice(1)
+  : inputVersion;
+if (!normalizedVersion) {
+  console.error("❌  Invalid version supplied");
+  process.exit(1);
 }
 
-const version = args[0].trim();
-const stablePattern = /^\d+\.\d+\.\d+$/u;
-const prereleasePattern = /^\d+\.\d+\.\d+-[0-9A-Za-z.-]+$/u;
+const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
+const current = pkg.version?.trim();
 
-if (isDevRelease) {
-  if (!stablePattern.test(version) && !prereleasePattern.test(version)) {
-    fail(`Invalid dev release version "${version}". Use semantic versioning (e.g. 1.2.3-dev.0).`);
+if (current !== normalizedVersion) {
+  try {
+    execSync(`npm version ${normalizedVersion} --no-git-tag-version`, {
+      stdio: "inherit",
+    });
+  } catch (e) {
+    console.error("❌  npm version failed:", e.message || e);
+    process.exit(1);
   }
-} else if (!stablePattern.test(version)) {
-  fail(`Invalid release version "${version}". Use semantic versioning (e.g. 1.2.3).`);
+} else {
+  console.log("ℹ️  package.json already at target version, skipping bump");
 }
 
-const distPath = path.resolve(process.cwd(), 'dist', 'nabu-eyes-dashboard-card.js');
-if (!fs.existsSync(distPath)) {
-  fail('Build output not found. Run "npm run build" before creating a release.');
+// Advance CHANGELOG (create section if missing) and re-seed Unreleased
+if (!skipChangelog) {
+  execSync(
+    `node ./tools/update-changelog.js --version ${normalizedVersion} --write`,
+    { stdio: "inherit" },
+  );
+} else {
+  console.log("ℹ️  Skipping changelog promotion per configuration");
 }
 
-if (!isDevRelease) {
-  const changelogPath = path.resolve(process.cwd(), 'CHANGELOG.md');
-  if (!fs.existsSync(changelogPath)) {
-    fail('CHANGELOG.md is missing. Add a changelog entry before releasing.');
+// Sanity checks for HACS/release assets (built earlier by your build step)
+const assets = [
+  "dist/nabu-eyes-dashboard-card.js",
+  "dist/nabu-eyes-dashboard-card.js.gz",
+];
+for (const a of assets) {
+  if (!fs.existsSync(a)) {
+    console.error(`❌  Missing required asset: ${a}`);
+    process.exit(1);
   }
-
-  const changelog = fs.readFileSync(changelogPath, 'utf8');
-  if (!changelog.includes(`[${version}]`)) {
-    fail(`CHANGELOG.md does not include an entry for [${version}].`);
-  }
 }
 
-try {
-  execSync(`npm version ${version} --no-git-tag-version`, { stdio: 'inherit' });
-} catch (error) {
-  fail(`npm version failed: ${error.message}`);
-}
-
-console.log(`\u2705  Release version set to ${version}`);
+const tagVersion = inputVersion.startsWith("v")
+  ? inputVersion
+  : `v${normalizedVersion}`;
+console.log(tagVersion);
+console.log(`✅  Release version set to ${normalizedVersion}`);

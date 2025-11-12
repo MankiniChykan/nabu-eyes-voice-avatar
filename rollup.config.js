@@ -25,6 +25,6 @@ export default {
       tsconfig: './tsconfig.json',
       useTsconfigDeclarationDir: true,
     }),
-    production && terser(),
+    production && terser()
   ],
 };

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Nabu Eyes dashboard custom card for Home Assistant",
   "scripts": {
-    "build": "rollup -c",
+    "build": "node ./tools/prepare-dist.js && rollup -c && node ./tools/compress-dist.js",
     "watch": "rollup -c -w",
     "lint": "eslint --ext .ts src",
     "release": "node ./tools/release.js",
@@ -12,7 +12,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/user/nabu-eyes-voice-avatar.git"
+    "url": "https://github.com/MankiniChykan/nabu-eyes-voice-avatar.git"
   },
   "author": "",
   "license": "MIT",
