@@ -46,6 +46,14 @@ type UnsubscribeFunc = () => void;
 const STATE_ASSET_MAP_TYPED: Record<NabuEyesAssistState | NabuEyesPseudoState, string> =
   STATE_ASSET_MAP;
 
+const ASSIST_STATE_PRIORITY: ReadonlyArray<NabuEyesAssistState> = [
+  'responding',
+  'playing',
+  'processing',
+  'listening',
+  'idle',
+];
+
 /**
  * Lit-based Lovelace card that visualises the Nabu Eyes avatar state based on
  * Assist satellites, media players, and Home Assistant events.
@@ -399,25 +407,17 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       return undefined;
     }
 
-    const priority: NabuEyesAssistState[] = [
-      'responding',
-      'playing',
-      'processing',
-      'listening',
-      'idle',
-    ];
-
     const states = this._config.assist_entities
-      .map((entityId) => this.hass.states[entityId]?.state as NabuEyesAssistState | undefined)
-      .filter((state): state is NabuEyesAssistState => !!state);
+      .map((entityId) => this.hass.states[entityId]?.state)
+      .filter((state): state is string => typeof state === 'string');
 
-    for (const desired of priority) {
+    for (const desired of ASSIST_STATE_PRIORITY) {
       if (states.includes(desired)) {
         return desired;
       }
     }
 
-    return states[0];
+    return undefined;
   }
 
   static get styles(): CSSResultGroup {
