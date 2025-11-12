@@ -86,103 +86,60 @@ const apiRequest = async (
   return response;
 };
 
-const guessContentType = (assetName) => {
-  if (assetName.endsWith('.gz')) {
-    return 'application/gzip';
-  }
-  if (assetName.endsWith('.js')) {
-    return 'application/javascript';
-  }
-  if (assetName.endsWith('.gif')) {
-    return 'image/gif';
-  }
-  if (assetName.endsWith('.zip')) {
-    return 'application/zip';
-  }
-  return 'application/octet-stream';
-};
-const prepareBundleDirectory = (distDir, { fsImpl = fs } = {}) => {
-  if (!fsImpl.existsSync(distDir)) {
-    throw new Error(`Distribution directory missing: ${distDir}`);
+const ensureReleaseAndUploadAssets = async (
+  version,
+  assets,
+  {
+    token = resolveGitHubToken(),
+    fetchImpl = defaultFetch,
+    execImpl = defaultExec,
+    repoSlug = guessRepoSlug(execImpl),
+    fsImpl = fs,
+    apiRoot = 'https://api.github.com',
+  } = {},
+) => {
+  if (!token) {
+    console.log('ℹ️  No GitHub token detected; skipping release asset upload.');
+    return;
   }
 
-  const bundleRoot = fsImpl.mkdtempSync(path.join(os.tmpdir(), 'nabu-eyes-dist-'));
-  const cleanup = () => {
-    fsImpl.rmSync(bundleRoot, { recursive: true, force: true });
-  };
-
-  const jsFile = path.join(distDir, 'nabu-eyes-dashboard-card.js');
-  const gzFile = `${jsFile}.gz`;
-  const assetDir = path.join(distDir, 'nabu_eyes_dashboard');
-
-  fsImpl.cpSync(jsFile, path.join(bundleRoot, path.basename(jsFile)), { recursive: false });
-  if (fsImpl.existsSync(gzFile)) {
-    fsImpl.cpSync(gzFile, path.join(bundleRoot, path.basename(gzFile)), { recursive: false });
+  if (!fetchImpl) {
+    console.warn('⚠️  No fetch implementation available; skipping release asset upload.');
+    return;
   }
 
-  if (fsImpl.existsSync(assetDir)) {
-    fsImpl.cpSync(assetDir, path.join(bundleRoot, path.basename(assetDir)), { recursive: true });
+  if (!repoSlug) {
+    console.warn('⚠️  Unable to determine repository slug; skipping release asset upload.');
+    return;
   }
 
-  const nestedDist = path.join(bundleRoot, 'dist');
-  fsImpl.mkdirSync(nestedDist, { recursive: true });
-  fsImpl.cpSync(distDir, nestedDist, { recursive: true });
+  const tagName = version.startsWith('v') ? version : `v${version}`;
+  const releasesBaseUrl = `${apiRoot}/repos/${repoSlug}/releases`;
+  let release;
 
-  return { bundleRoot, cleanup };
-};
-
-const zipDirectory = (sourceDir, outputFile, { fsImpl = fs, spawnSyncImpl = spawnSync } = {}) => {
-  if (!fsImpl.existsSync(sourceDir)) {
-    throw new Error(`Source directory missing: ${sourceDir}`);
-  }
-
-  const zipArgs = ['-r', outputFile, '.'];
-  const result = spawnSyncImpl('zip', zipArgs, { cwd: sourceDir, stdio: 'inherit' });
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  if (typeof result.status === 'number' && result.status !== 0) {
-    throw new Error(`zip command failed with exit code ${result.status}`);
-  }
-};
-
-const collectFilesRecursively = (directory, fsImpl = fs) => {
-  const collected = [];
-  if (!directory || !fsImpl.existsSync(directory)) {
-    return collected;
-  }
-
-  for (const entry of fsImpl.readdirSync(directory)) {
-    const resolved = path.join(directory, entry);
-    const stats = fsImpl.statSync(resolved);
-    if (stats.isDirectory()) {
-      collected.push(...collectFilesRecursively(resolved, fsImpl));
-    } else {
-      collected.push(resolved);
-    }
-  }
-
-  return collected;
-};
-
-function normalizeAssetDescriptors(assets) {
-  return assets.map((entry) => {
-    if (typeof entry === 'string') {
-      return { path: entry, name: path.basename(entry) };
-    }
-
-    if (entry && typeof entry === 'object' && typeof entry.path === 'string') {
-      return {
-        path: entry.path,
-        name: entry.name || path.basename(entry.path),
-      };
-    }
-
-    throw new Error(`Invalid asset descriptor: ${JSON.stringify(entry)}`);
+  const tagResponse = await apiRequest(fetchImpl, `${releasesBaseUrl}/tags/${tagName}`, {
+    token,
+    allowNotFound: true,
   });
-}
+
+  if (tagResponse.status === 404) {
+    const commitSha = execImpl('git rev-parse HEAD');
+    const createResponse = await apiRequest(fetchImpl, releasesBaseUrl, {
+      token,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tag_name: tagName,
+        target_commitish: commitSha,
+        name: tagName,
+        draft: false,
+        prerelease: version.includes('-'),
+      }),
+    });
+    release = await createResponse.json();
+  } else {
+    release = await tagResponse.json();
+  }
 
 const ensureReleaseAndUploadAssets = async (
   version,
@@ -272,8 +229,8 @@ const ensureReleaseAndUploadAssets = async (
       });
     }
 
-    const fileBuffer = fsImpl.readFileSync(descriptor.path);
-    const contentType = guessContentType(assetName);
+    const fileBuffer = fsImpl.readFileSync(assetPath);
+    const contentType = assetName.endsWith('.gz') ? 'application/gzip' : 'application/javascript';
 
     console.log(`⬆️  Uploading ${assetName} to GitHub release ${tagName}.`);
     await apiRequest(fetchImpl, `${uploadBase}?name=${encodeURIComponent(assetName)}`, {
@@ -313,27 +270,6 @@ const performRelease = async (version, options = {}) => {
     process.exit(1);
   }
 
-  const assetDir = path.resolve('dist/nabu_eyes_dashboard');
-  const assetFiles = collectFilesRecursively(assetDir);
-  const distDir = path.resolve('dist');
-  const zipPath = path.resolve(distDir, 'nabu-eyes-dashboard-card.zip');
-
-  fs.rmSync(zipPath, { force: true });
-
-  let cleanupBundle;
-  try {
-    const bundle = prepareBundleDirectory(distDir);
-    cleanupBundle = bundle.cleanup;
-    zipDirectory(bundle.bundleRoot, zipPath);
-    console.log(`🗜️  Packaged dist assets into ${zipPath}`);
-  } catch (error) {
-    cleanupBundle?.();
-    console.error(`❌  Unable to package dist assets: ${error.message}`);
-    process.exit(1);
-  } finally {
-    cleanupBundle?.();
-  }
-
   try {
     const forceAddTargets = [`"${js}"`, `"${gz}"`, ...(assetFiles.map((file) => `"${file}"`))];
     sh(`git add -f ${forceAddTargets.join(' ')}`);
@@ -357,16 +293,7 @@ const performRelease = async (version, options = {}) => {
     console.warn(`⚠️  Unable to push tag to origin: ${error?.message || error}`);
   }
 
-  await ensureReleaseAndUploadAssets(
-    version,
-    [
-      { path: js, name: 'dist/nabu-eyes-dashboard-card.js' },
-      { path: gz, name: 'dist/nabu-eyes-dashboard-card.js.gz' },
-      ...assetFiles,
-      zipPath,
-    ],
-    options,
-  );
+  await ensureReleaseAndUploadAssets(version, [js, gz], options);
 };
 
 const main = async (argv = process.argv) => {

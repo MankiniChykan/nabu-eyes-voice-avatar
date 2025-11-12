@@ -8,5 +8,24 @@ dist/*
 !dist/nabu-eyes-dashboard-card.js
 !dist/nabu-eyes-dashboard-card.js.gz
 !dist/nabu-eyes-dashboard-card.js.map
+!dist/nabu_eyes_dashboard/1px_equalizer_dash.gif
+!dist/nabu_eyes_dashboard/1px_equalizer_fader_2_dash.gif
+!dist/nabu_eyes_dashboard/1px_equalizer_fader_dash.gif
+!dist/nabu_eyes_dashboard/2px_equalizer_bottom_dash.gif
+!dist/nabu_eyes_dashboard/2px_equalizer_dash.gif
+!dist/nabu_eyes_dashboard/2px_equalizer_fader_2_dash.gif
+!dist/nabu_eyes_dashboard/2px_equalizer_fader_dash.gif
+!dist/nabu_eyes_dashboard/nabu_alarm_dash.gif
+!dist/nabu_eyes_dashboard/nabu_countdown_dash.gif
+!dist/nabu_eyes_dashboard/nabu_equalizer_2_dash.gif
+!dist/nabu_eyes_dashboard/nabu_equalizer_dash.gif
+!dist/nabu_eyes_dashboard/nabu_idle_preview_dash.gif
+!dist/nabu_eyes_dashboard/nabu_listening_dash.gif
+!dist/nabu_eyes_dashboard/nabu_music_dash.gif
+!dist/nabu_eyes_dashboard/nabu_mute_dash.gif
+!dist/nabu_eyes_dashboard/nabu_mute_red_dash.gif
+!dist/nabu_eyes_dashboard/nabu_playing_dash.gif
+!dist/nabu_eyes_dashboard/nabu_processing_dash.gif
+!dist/nabu_eyes_dashboard/nabu_responding_dash.gif
 # If you also want to ship the manifest, uncomment:
 # !dist/checksums.txt
