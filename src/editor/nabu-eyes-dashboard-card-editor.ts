@@ -1,6 +1,11 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
-import { DEFAULT_ALARM_ACTIVE_STATES, EQUALIZER_VARIANTS, PLAYING_VARIANTS } from '../const';
+import {
+  DEFAULT_ALARM_ACTIVE_STATES,
+  DEFAULT_ASSET_PATH,
+  EQUALIZER_VARIANTS,
+  PLAYING_VARIANTS,
+} from '../const';
 import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 
 type HaSelectElement = HTMLElement & { value?: string };
@@ -108,8 +113,8 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
         <ha-textfield
           label="Asset path"
-          helper="Folder within /local containing GIF assets"
-          .value=${config.asset_path ?? ''}
+          helper="Folder containing GIF assets (defaults to the HACS install path)"
+          .value=${config.asset_path ?? DEFAULT_ASSET_PATH}
           @input=${this._handleTextValue}
           data-field="asset_path"
         ></ha-textfield>
