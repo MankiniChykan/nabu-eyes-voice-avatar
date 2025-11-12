@@ -15,6 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: MankiniChykan/nabu-eyes-voice-avatar
           fetch-depth: 0
 
       - name: Install Node.js
@@ -32,17 +33,18 @@ jobs:
       - name: Create checksums
         run: |
           cd dist
-          sha256sum simple-air-comfort-card.js > simple-air-comfort-card.js.sha256
-          sha256sum simple-air-comfort-card.js.gz > simple-air-comfort-card.js.gz.sha256
+          sha256sum nabu-eyes-dashboard-card.js > nabu-eyes-dashboard-card.js.sha256
+          sha256sum nabu-eyes-dashboard-card.js.gz > nabu-eyes-dashboard-card.js.gz.sha256
           ls -l
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          repository: MankiniChykan/nabu-eyes-voice-avatar
           files: |
-            dist/simple-air-comfort-card.js
-            dist/simple-air-comfort-card.js.gz
-            dist/simple-air-comfort-card.js.sha256
-            dist/simple-air-comfort-card.js.gz.sha256
+            dist/nabu-eyes-dashboard-card.js
+            dist/nabu-eyes-dashboard-card.js.gz
+            dist/nabu-eyes-dashboard-card.js.sha256
+            dist/nabu-eyes-dashboard-card.js.gz.sha256
           fail_on_unmatched_files: true
           generate_release_notes: true

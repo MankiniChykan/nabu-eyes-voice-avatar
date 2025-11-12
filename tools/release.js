@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-const fs = require('node:fs');
-const path = require('node:path');
-const { execSync } = require('node:child_process');
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
 
 function fail(message) {
   console.error(`\u274c  ${message}`);
@@ -31,18 +31,21 @@ if (isDevRelease) {
   fail(`Invalid release version "${version}". Use semantic versioning (e.g. 1.2.3).`);
 }
 
-const distPath = path.resolve(process.cwd(), 'dist', 'nabu-eyes-dashboard-card.js');
-if (!fs.existsSync(distPath)) {
+const distDir = path.resolve(process.cwd(), 'dist');
+const distJsPath = path.join(distDir, 'nabu-eyes-dashboard-card.js');
+const distGzipPath = `${distJsPath}.gz`;
+
+if (!existsSync(distJsPath) || !existsSync(distGzipPath)) {
   fail('Build output not found. Run "npm run build" before creating a release.');
 }
 
 if (!isDevRelease) {
   const changelogPath = path.resolve(process.cwd(), 'CHANGELOG.md');
-  if (!fs.existsSync(changelogPath)) {
+  if (!existsSync(changelogPath)) {
     fail('CHANGELOG.md is missing. Add a changelog entry before releasing.');
   }
 
-  const changelog = fs.readFileSync(changelogPath, 'utf8');
+  const changelog = readFileSync(changelogPath, 'utf8');
   if (!changelog.includes(`[${version}]`)) {
     fail(`CHANGELOG.md does not include an entry for [${version}].`);
   }
