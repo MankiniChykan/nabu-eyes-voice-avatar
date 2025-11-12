@@ -38,11 +38,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Promote changelog for release
-        run: node ./tools/update-changelog.js --version ${{ steps.version.outputs.raw }} --write
-
-      - name: Update package version and verify assets
-        run: npm run release -- ${{ steps.version.outputs.raw }} --skip-changelog
+      - name: Update changelog and verify release assets
+        run: npm run release -- ${{ steps.version.outputs.normalized }}
 
       - name: Create checksums
         run: |

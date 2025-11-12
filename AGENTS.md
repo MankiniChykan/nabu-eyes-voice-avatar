@@ -1,192 +1,374 @@
-Repository: nabu-eyes-voice-avatar
+Repository: MankiniChykan/nabu-eyes-voice-avatar
+Targets: Home Assistant + AWTRIX3 (Ulanzi Clock)
+Mission: Voice-feedback + avatar visualization with event-driven behavior, shipped via HACS.
 
-Voice Avatar for Home Assistant and Awtrix3 (Ulanzi Clock)
+1) Scope & Principles
 
-1. Purpose & Scope
 
-This repository builds a voice-avatar integration for Home Assistant, providing voice-feedback, avatar visualisation, and event-driven interactions.
+Ship a reliable, lean Home Assistant dashboard card and assets.
 
-As an agent working on this repo you will:
 
-Follow the architecture and coding conventions defined here.
+Priority: correctness → performance → maintainability → accessibility.
 
-Prioritise maintainability, accessibility and performance in voice/UX pipelines.
 
-Assume the user base includes smart-home enthusiasts with technical ability.
+Assume users are smart-home enthusiasts with moderate technical skills.
 
-2. Agent Role & Behaviour
 
-When assisting with issues, features or code changes you must:
 
-Understand context – review issue, PR, and code.
+2) Repository Layout (mandatory)
 
-Suggest actionable solutions – provide concrete patches, tests, and documentation updates.
 
-Respect constraints – embedded in Home Assistant; bundle size and browser compatibility are critical.
+Sources: ./src/** only (no code outside src/).
 
-Document your advice – include reasoning and references.
 
-3. Coding & Architecture Standards
+Example: src/nabu-eyes-dashboard-card.ts
 
-Language: TypeScript (front-end/dashboard card).
 
-Source Directory: All source files must reside under /src.
 
-Example: /src/nabu-eyes-dashboard-card.ts
 
-Output Directory: All compiled and bundled artifacts must output to /dist.
+Build outputs: ./dist/** (generated only).
 
-The /dist folder should not exist or contain stale files before a build.
 
-It must be generated only via build or release commands.
+Required after a successful build:
 
-Required Build Outputs:
 
 dist/nabu-eyes-dashboard-card.js
 
-dist/nabu-eyes-dashboard-card.js.gz (gzip-compressed version)
 
-Bundler: Rollup with tree-shaking enabled.
-
-Imports: Use default imports for plugins (import terser from '@rollup/plugin-terser').
-
-Constants: Use readonly for immutable arrays.
-
-Typing: No any; type events as MessageEvent<any>.
-
-Docs: Every exported function/class must include JSDoc or TS doc-comments.
-
-Tests: Add unit tests for critical state-handling and voice logic.
-
-Linting & Formatting: Must pass ESLint and Prettier without warnings.
-
-4. Branching / Versioning / Release Policy
-
-main branch = production-ready at all times.
-
-feature/ branches = new features.
-
-fix/ branches = bug fixes.
-
-Versioning: Semantic Versioning (major.minor.patch).
-
-Release Workflow
-
-Bump version in package.json.
-
-Update CHANGELOG.md and user-facing docs (README.md, hacs.json, manifest.json).
-
-Run the build:
-
-npm run build
+dist/nabu-eyes-dashboard-card.js.gz
 
 
-This must:
-
-Compile the TypeScript source (/src) to /dist
-
-Generate both .js and .js.gz bundles
-
-Never leave stale files in /dist
-
-Tag and publish the release on GitHub.
-
-Push tag to main for HACS to detect.
-
-- On release, the agent must run `node ./tools/update-changelog.js --version <x.y.z> --write` to promote "Unreleased" to the tagged version and re-seed the Unreleased section.
-- PR builds must not write the changelog; they only prove the build outputs exist, then delete `dist/` before committing.
-
-Release Commands
-
-Development release:
-
-npm run build && npm run release:dev -- 1.0.327-dev.0
 
 
-Production release:
 
-npm run build && npm run release -- 1.0.327
 
-5. HACS Compliance Requirements
+PRs must not commit dist/: ensure .gitignore contains dist/.
 
-This card must remain fully HACS-compliant for Home Assistant Community Store distribution.
 
-Agents must ensure:
 
-Repository includes a valid hacs.json with metadata (name, filename, homeassistant, category).
+3) Tooling & Coding Standards
 
-The main build output is dist/nabu-eyes-dashboard-card.js.
 
-Each release must include both .js and .js.gz in the GitHub release assets.
+Language: TypeScript (strict). Avoid any; use unions/generics.
 
-The GitHub release version tag matches the version in package.json and hacs.json.
 
-The README.md includes HACS installation instructions and manual resource path:
+Bundler: Rollup with tree-shaking. Use default terser import:
+import terser from '@rollup/plugin-terser';
 
+
+
+Types & immutability: Prefer literal unions or readonly arrays; don’t assign a readonly constant to a mutable string[].
+
+
+Docs: JSDoc/TS docstrings for all exported APIs.
+
+
+Style: Prettier + ESLint must pass with zero warnings.
+
+
+Tests: Unit tests for state handling, event routing, and critical transforms.
+
+
+
+4) HACS Compliance (non-negotiable)
+
+
+Root hacs.json with:
+
+
+name, render_readme, filename: "dist/nabu-eyes-dashboard-card.js".
+
+
+If distributing via release assets only, set "zip_release": true if you zip assets.
+
+
+
+
+Each GitHub Release must attach both:
+
+
+dist/nabu-eyes-dashboard-card.js
+
+
+dist/nabu-eyes-dashboard-card.js.gz
+
+
+
+
+README includes HACS install + manual resource URL:
 /hacsfiles/nabu-eyes-voice-avatar/nabu-eyes-dashboard-card.js
 
 
-Manifest and version fields are in sync with release tags.
+Tag, package.json version, and HACS metadata stay in sync.
 
-6. Review / Pull Request Checklist
 
-Before merging any PR:
 
- Code is typed, documented, tested.
+5) Branching, Versioning, Changelog
 
- Build completes with both .js and .gz outputs.
 
- No build warnings or linting errors.
+Branches:
 
- Bundle size stable or reduced.
 
- Licenses are compatible (MIT preferred).
+main: always releasable
 
- CHANGELOG.md and README.md updated if user-visible changes occur.
 
-7. Voice & Interaction Rules
+feature/*: new features
 
-Voice responses concise, contextual, and event-linked.
 
-Avatar animation must mirror system or sensor states.
+fix/*: bug fixes only
 
-Unknown states handled gracefully (silent, unavailable).
 
-Use readonly string[] for activeStates.
 
-8. Documentation & User Guide
 
-Keep README.md aligned with features, setup steps, and HACS instructions.
+SemVer: MAJOR.MINOR.PATCH.
 
-Each release must update CHANGELOG.md and publish a GitHub release note.
 
-Include troubleshooting for voice engine, microphone, or Home Assistant issues.
+Changelog: Root CHANGELOG.md in Keep a Changelog style with a top ## [Unreleased] section (Added/Changed/Fixed/Removed).
 
-9. Security & Privacy
 
-Never log private audio data.
+Auto-Changelog Policy
 
-Offer opt-in/out settings for voice logging.
 
-Run npm audit fix periodically.
+Release automation promotes ## [Unreleased] → ## [x.y.z] - YYYY-MM-DD and re-seeds a fresh Unreleased block.
 
-10. Known Limitations & Roadmap
 
-Supported: Home Assistant + Awtrix3 / Ulanzi Clock.
+Script: tools/update-changelog.js
 
-Planned: Multi-language TTS, offline voice engine, lip-sync animation, and mobile interface.
 
-Use GitHub Projects label roadmap to track upcoming work.
+Typical usage:
+node ./tools/update-changelog.js --version 0.0.3 --write
+(CI can add --commit --tag when appropriate.)
 
-11. Agent Escalation Policy
 
-If an agent is blocked:
 
-Tag with needs-spec or blocked.
 
-Specify missing info (API key, asset, dependency).
+Never hand-edit past releases retroactively; new changes go into Unreleased.
 
-Tag the repo owner for direction.
 
-End of AGENTS.md
-Thank you for keeping the project HACS-compliant, cleanly built, and release-ready with proper /src → /dist pipelines.
+
+6) PR Policy — Build → Verify → Clean (source-only PRs)
+Goal: Prove the build without committing artifacts.
+Required PR steps (local or CI):
+# Reset & install
+rm -rf node_modules dist
+npm ci
+
+# Quality gates
+npm run lint
+
+# Build /src -> /dist
+npm run build
+
+# Verify required outputs
+test -f dist/nabu-eyes-dashboard-card.js
+test -f dist/nabu-eyes-dashboard-card.js.gz
+node -e "const fs=require('fs');if(!fs.statSync('dist/nabu-eyes-dashboard-card.js').size)process.exit(1)"
+
+# Optional HACS pointer sanity (structure only)
+test -f hacs.json
+node -e "const j=require('./hacs.json');if(!(j.filename||'').includes('dist/nabu-eyes-dashboard-card.js'))process.exit(1)"
+
+# Clean so the PR remains source-only
+rm -rf dist
+
+PR checklist
+
+
+ Lint passes (0 warnings).
+
+
+ Build produced .js + .gz and they were removed before commit.
+
+
+ Tests green.
+
+
+ No gratuitous deps; licenses OK.
+
+
+ CHANGELOG.md + docs updated for user-visible changes.
+
+
+
+7) Workflow Contract (all four must run)
+Keep all four workflows under .github/workflows/ green:
+
+
+build.yml — PR build check (source-only)
+
+
+Trigger: pull_request → main.
+
+
+Steps: npm ci → npm run lint → npm run build → verify .js & .gz → remove dist/.
+
+
+Purpose: Prove PR can build; artifacts never land in branch.
+
+
+
+
+validate.yml — validation & policy checks
+
+
+Trigger: pull_request and/or push.
+
+
+Tasks: schema/format, tsc --noEmit, repo structure checks.
+
+
+Rule: HACS “full release” validation that expects artifacts must be skipped on PRs; enable that on tags.
+
+
+
+
+release.yml — tag-driven release (uploads assets)
+
+
+Trigger: push on tags like v*.
+
+
+Steps: npm ci → npm run build → verify .js & .gz → upload both assets to the GitHub Release → optional HACS validation on the tag.
+
+
+
+
+build-release.yml — combined build + publish flow
+
+
+Trigger: workflow_dispatch and/or tags/branches as configured.
+
+
+May also bump versions, create changelog entries, or push tags.
+
+
+Must still produce .js + .gz, upload to the Release, and (if configured) run HACS validation.
+
+
+
+
+
+If a job is intentionally skipped (e.g., full HACS release check on PRs), document it with if: guards and a brief note.
+
+
+8) Release Workflow (assets live on the Release)
+
+
+Bump version in package.json (only if different).
+
+
+Advance changelog:
+node ./tools/update-changelog.js --version <x.y.z> --write
+(CI can add --commit --tag to commit the change and create an annotated tag.)
+
+
+Build: npm run build → produces .js + .gz in dist/.
+
+
+Publish: Attach both files to the GitHub Release for the tag.
+
+
+Validate: Run HACS validation against the tag.
+
+
+
+Releases must not rely on stale dist/. Build fresh each time.
+
+
+9) Voice & Interaction Rules
+
+
+Keep responses concise and contextual; no filler.
+
+
+Avatar state transitions reflect system/sensor events.
+
+
+Unknown states handled gracefully (silent/unavailable).
+
+
+Use readonly string[] or literal unions for active states; don’t assign immutable arrays to mutable fields.
+
+
+
+10) Security & Privacy
+
+
+Never log private audio/PII.
+
+
+Provide opt-in/out for voice logging.
+
+
+Keep deps current; run npm audit regularly.
+
+
+
+11) Roadmap & Limits
+
+
+Current: HA + AWTRIX3/Ulanzi.
+
+
+Planned: Multi-language TTS, offline voice engine, better lip-sync, mobile dashboard.
+
+
+Track via GitHub Projects with roadmap label.
+
+
+
+12) Escalation
+If blocked:
+
+
+Label needs-spec or blocked.
+
+
+State exactly what’s missing (API, design, asset, access).
+
+
+Tag repo owner.
+
+
+
+13) Definition of Done
+
+
+Build verified; .js + .gz produced and cleaned for PRs.
+
+
+All four workflows satisfied according to their contracts.
+
+
+HACS compliance intact.
+
+
+Changelog + docs updated (auto-promoted on release).
+
+
+Tag published with release assets on production release.
+
+
+
+File placement
+
+
+AGENTS.md: repo root
+
+
+CHANGELOG.md: repo root (## [Unreleased] always present)
+
+
+Sources: ./src/** only
+
+
+Build outputs: ./dist/** only (generated, not committed in PRs)
+
+
+
+Dev release:
+npm run build && npm run release:dev -- 1.0.327-dev.0
+
+Production release:
+npm run build && npm run release -- 1.0.327.
+

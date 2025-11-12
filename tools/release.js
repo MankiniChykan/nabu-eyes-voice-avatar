@@ -2,15 +2,16 @@
 // npm run release -- 0.0.3
 import { execSync } from "node:child_process";
 import fs from "node:fs";
+#!/usr/bin/env node
+import { existsSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
 
-const args = process.argv.slice(2);
-const inputVersion = args.find((arg) => !arg.startsWith("--"));
+const inputVersion = process.argv[2];
 if (!inputVersion) {
   console.error("❌  Provide a version: npm run release -- x.y.z");
   process.exit(1);
 }
-
-const skipChangelog = args.includes("--skip-changelog");
 
 const normalizedVersion = inputVersion.startsWith("v")
   ? inputVersion.slice(1)
@@ -36,25 +37,23 @@ if (current !== normalizedVersion) {
   console.log("ℹ️  package.json already at target version, skipping bump");
 }
 
-// Advance CHANGELOG (create section if missing) and re-seed Unreleased
-if (!skipChangelog) {
-  execSync(
-    `node ./tools/update-changelog.js --version ${normalizedVersion} --write`,
-    { stdio: "inherit" },
-  );
-} else {
-  console.log("ℹ️  Skipping changelog promotion per configuration");
+const distDir = path.resolve(process.cwd(), 'dist');
+const distJsPath = path.join(distDir, 'nabu-eyes-dashboard-card.js');
+const distGzipPath = `${distJsPath}.gz`;
+
+if (!existsSync(distJsPath) || !existsSync(distGzipPath)) {
+  fail('Build output not found. Run "npm run build" before creating a release.');
 }
 
-// Sanity checks for HACS/release assets (built earlier by your build step)
-const assets = [
-  "dist/nabu-eyes-dashboard-card.js",
-  "dist/nabu-eyes-dashboard-card.js.gz",
-];
-for (const a of assets) {
-  if (!fs.existsSync(a)) {
-    console.error(`❌  Missing required asset: ${a}`);
-    process.exit(1);
+if (!isDevRelease) {
+  const changelogPath = path.resolve(process.cwd(), 'CHANGELOG.md');
+  if (!existsSync(changelogPath)) {
+    fail('CHANGELOG.md is missing. Add a changelog entry before releasing.');
+  }
+
+  const changelog = readFileSync(changelogPath, 'utf8');
+  if (!changelog.includes(`[${version}]`)) {
+    fail(`CHANGELOG.md does not include an entry for [${version}].`);
   }
 }
 
