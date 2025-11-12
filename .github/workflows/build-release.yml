@@ -32,7 +32,6 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          repo_owner: MankiniChykan
           repo_name: nabu-eyes-voice-avatar
           file: dist/nabu-eyes-dashboard-card.js
           asset_name: nabu-eyes-dashboard-card.js

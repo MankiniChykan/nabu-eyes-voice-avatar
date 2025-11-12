@@ -116,14 +116,7 @@ rm -rf dist
 
 ## 7) Workflow Contract (all four must run)
 
-<<<<<<< HEAD
-- On release, the agent must run `node ./tools/update-changelog.js --version <x.y.z> --write` to promote "Unreleased" to the tagged version and re-seed the Unreleased section.
-- PR builds must not write the changelog; they only prove the build outputs exist, then delete `dist/` before committing.
-
-Release Commands
-=======
 Your `.github/workflows/` contains:
->>>>>>> 4cd329b (	modified:   AGENTS.md)
 
 1. **`build.yml`** — PR build check (source-only)
 
