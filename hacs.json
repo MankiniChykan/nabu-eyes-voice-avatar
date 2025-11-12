@@ -1,5 +1,6 @@
 {
   "name": "Nabu Eyes Voice Avatar",
   "filename": "dist/nabu-eyes-dashboard-card.js",
-  "render_readme": true
+  "render_readme": true,
+  "zip_release": true
 }
