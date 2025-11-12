@@ -69,29 +69,9 @@ function parseInternal(code, options) {
 }
 
 module.exports = {
-  /**
-   * Parse TypeScript-flavoured source into an ESTree-compatible abstract syntax
-   * tree by transpiling with the local TypeScript compiler and delegating to
-   * Espree.
-   *
-   * @param {string} code - The source code provided to the parser.
-   * @param {import('eslint').ParserOptions} [options] - ESLint parser options.
-   * @returns {object} Program node representing the provided code.
-   */
   parse(code, options) {
     return parseInternal(code, options).ast;
   },
-
-  /**
-   * Parse TypeScript source and return the metadata shape required by
-   * {@link https://eslint.org/docs/latest/integrate/nodejs-api#custom-parser|ESLint custom parsers}.
-   * Includes visitor keys, scope manager and helper services so lint rules can
-   * interact with the transpiled program.
-   *
-   * @param {string} code - The source code provided to the parser.
-   * @param {import('eslint').ParserOptions} [options] - ESLint parser options.
-   * @returns {object} ESLint parse result augmented with helper services.
-   */
   parseForESLint(code, options = {}) {
     const { ast, tokens, comments, scopeManager, transpiled } = parseInternal(
       code,
