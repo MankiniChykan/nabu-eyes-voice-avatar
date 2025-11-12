@@ -1,22 +1,22 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
-import {
-  DEFAULT_ALARM_ACTIVE_STATES,
-  EQUALIZER_VARIANTS,
-  PLAYING_VARIANTS
-} from '../const';
+import { DEFAULT_ALARM_ACTIVE_STATES, EQUALIZER_VARIANTS, PLAYING_VARIANTS } from '../const';
 import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 
 type HaSelectElement = HTMLElement & { value?: string };
 type HaSwitchElement = HTMLElement & { checked?: boolean };
 
+/**
+ * Configuration UI for the Nabu Eyes dashboard card allowing users to map
+ * Assist entities, event triggers, and asset preferences.
+ */
 export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceCardEditor {
   public hass!: HomeAssistant;
   private _config?: NabuEyesDashboardCardConfig;
 
   public static properties = {
     hass: { attribute: false },
-    _config: { state: true }
+    _config: { state: true },
   } as const;
 
   public setConfig(config: NabuEyesDashboardCardConfig): void {
@@ -28,7 +28,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       alarm_events: [...(config.alarm_events ?? [])],
       alarm_clear_events: [...(config.alarm_clear_events ?? [])],
       alarm_entities: [...(config.alarm_entities ?? [])],
-      alarm_active_states: [...(config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES)]
+      alarm_active_states: [...(config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES)],
     };
   }
 
@@ -91,7 +91,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @closed=${this._stopPropagation}
         >
           ${Object.entries(PLAYING_VARIANTS).map(
-            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`
+            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`,
           )}
         </ha-select>
 
@@ -102,7 +102,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @closed=${this._stopPropagation}
         >
           ${Object.entries(EQUALIZER_VARIANTS).map(
-            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`
+            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`,
           )}
         </ha-select>
 
@@ -126,13 +126,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ${this._renderEventInputs(
           'Countdown clear events',
           'countdown_clear_events',
-          config.countdown_clear_events
+          config.countdown_clear_events,
         )}
         ${this._renderEventInputs('Alarm events', 'alarm_events', config.alarm_events)}
         ${this._renderEventInputs(
           'Alarm clear events',
           'alarm_clear_events',
-          config.alarm_clear_events
+          config.alarm_clear_events,
         )}
 
         <ha-textfield
@@ -149,7 +149,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   private _renderEventInputs(
     label: string,
     field: keyof NabuEyesDashboardCardConfig,
-    values?: string[]
+    values?: string[],
   ): TemplateResult {
     return html`
       <ha-textfield
@@ -169,7 +169,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     }
 
     const value = target.value;
-    this._updateConfig(target.dataset.field as keyof NabuEyesDashboardCardConfig, value || undefined);
+    this._updateConfig(
+      target.dataset.field as keyof NabuEyesDashboardCardConfig,
+      value || undefined,
+    );
   }
 
   private _handleStringArray(event: Event): void {
@@ -190,8 +193,8 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     const value = Array.isArray(event.detail?.value)
       ? (event.detail.value as string[])
       : event.detail?.value
-      ? [event.detail.value]
-      : [];
+        ? [event.detail.value]
+        : [];
     this._updateConfig('assist_entities', value);
   }
 
@@ -207,24 +210,24 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     const value = Array.isArray(event.detail?.value)
       ? (event.detail.value as string[])
       : event.detail?.value
-      ? [event.detail.value]
-      : [];
+        ? [event.detail.value]
+        : [];
     this._updateConfig('alarm_entities', value);
   }
 
   private _handlePlayingVariant(event: Event): void {
     const target = event.currentTarget as HaSelectElement;
     const value = target?.value;
-    if (value) {
-      this._updateConfig('playing_variant', value as string);
+    if (value && value in PLAYING_VARIANTS) {
+      this._updateConfig('playing_variant', value as keyof typeof PLAYING_VARIANTS);
     }
   }
 
   private _handleEqualizerVariant(event: Event): void {
     const target = event.currentTarget as HaSelectElement;
     const value = target?.value;
-    if (value) {
-      this._updateConfig('media_player_equalizer', value as string);
+    if (value && value in EQUALIZER_VARIANTS) {
+      this._updateConfig('media_player_equalizer', value as keyof typeof EQUALIZER_VARIANTS);
     }
   }
 
@@ -239,7 +242,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
   private _updateConfig<K extends keyof NabuEyesDashboardCardConfig>(
     field: K,
-    value: NabuEyesDashboardCardConfig[K]
+    value: NabuEyesDashboardCardConfig[K],
   ): void {
     if (!this._config) {
       return;
@@ -247,7 +250,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
     const newConfig: NabuEyesDashboardCardConfig = {
       ...this._config,
-      [field]: value
+      [field]: value,
     };
 
     this._config = newConfig;
