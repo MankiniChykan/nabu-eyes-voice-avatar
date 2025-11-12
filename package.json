@@ -1,12 +1,16 @@
 {
   "name": "nabu-eyes-voice-avatar",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "description": "Nabu Eyes dashboard custom card for Home Assistant",
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "lint": "eslint --ext .ts src"
+    "lint": "eslint --ext .ts src",
+    "release": "node ./tools/release.js",
+    "release:dev": "node ./tools/release.js",
+    "verify:dist": "node ./tools/verify-dist.js"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/user/nabu-eyes-voice-avatar.git"
@@ -18,6 +22,8 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
+    "@typescript-eslint/eslint-plugin": "file:tools/vendor/@typescript-eslint/eslint-plugin",
+    "@typescript-eslint/parser": "file:tools/vendor/@typescript-eslint/parser",
     "@types/lodash": "^4.14.202",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",

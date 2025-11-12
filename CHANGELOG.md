@@ -3,10 +3,46 @@ nabu-eyes-voice-avatar
 All notable changes to this project are documented here.
 This project follows Semantic Versioning: MAJOR.MINOR.PATCH.
 
+[Unreleased]
+
+Added
+
+- Added a distribution verification script that ensures the compiled bundle
+  lives under `dist/` and is present before packaging releases.
+
+Changed
+
+- Updated the CI and release workflows to run the distribution verification so
+  TypeScript sources never leak outside of `src/` during automation.
+
+Fixed
+
+- Replaced the custom ESLint parser shim with the `@typescript-eslint` parser
+  and plugin so linting runs cleanly under Node.js 24 in the repository's ESM
+  configuration.
+- Converted the release helper to a native ES module so `npm run release`
+  works in environments that enforce the repository's ESM module mode.
+
+[0.0.2] – 2025-11-13
+Added
+
+- Enforced semantic-version monotonicity in the release helper and clarified
+  prerelease handling so `npm run release` fails fast when a version is missing
+  from the changelog or regresses the package version.
+- Converted project tooling to explicit CommonJS modules and marked the package
+  as ESM to satisfy HACS repository structure validation and eliminate Rollup
+  build warnings.
+
+Changed
+
+- Normalised project metadata so the published package version matches the
+  initial release baseline.
+
 [0.0.1] – 2025-11-12
 Added
 
 Initial project setup and repository scaffolding.
+
 
 rollup.config.js with ES-module build and TypeScript bundling via rollup-plugin-typescript2.
 
