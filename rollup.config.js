@@ -1,3 +1,4 @@
+/* eslint-env node */
 // rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -29,12 +30,9 @@ export default {
     }),
     // Copy GIF/assets into dist so HACS serves them under /hacsfiles/<repo>/...
     copy({
-      targets: [
-        { src: 'src/nabu_eyes_dashboard/**/*', dest: 'dist/nabu_eyes_dashboard' },
-      ],
-      hook: 'writeBundle', // ensure dist/ exists first
-      verbose: true,
+      targets: [{ src: 'src/nabu_eyes_dashboard/**', dest: 'dist/nabu_eyes_dashboard' }],
+      // copyOnce: true, // uncomment if you only want copying on first build in watch mode
     }),
-    production && terser(),
+    ...(production ? [terser()] : []),
   ],
 };
