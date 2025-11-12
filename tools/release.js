@@ -12,10 +12,7 @@ if (!input) {
 }
 const version = input.replace(/^v/, '');
 
-const sh = (cmd) => {
-  console.log('$', cmd);
-  execSync(cmd, { stdio: 'inherit' });
-};
+const sh = (cmd) => { console.log('$', cmd); execSync(cmd, { stdio: 'inherit' }); };
 
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 if ((pkg.version || '').trim() !== version) {
@@ -31,8 +28,12 @@ if (!fs.existsSync(js) || !fs.existsSync(gz)) {
   process.exit(1);
 }
 
+// stage built assets (even if dist is gitignored)
 try { sh(`git add -f "${js}" "${gz}"`); } catch {}
 try { sh(`git commit -m "build: release ${version}"`); } catch { console.log('ℹ️  Nothing to commit.'); }
 
 try { sh(`git tag -f v${version} -m "v${version}"`); } catch {}
-sh('git push --follow-tags');
+
+// push branch (if any changes) and ALWAYS push the tag
+try { sh('git push'); } catch {}
+sh(`git push origin v${version}`);

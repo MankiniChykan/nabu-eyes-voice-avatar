@@ -13,14 +13,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          repository: MankiniChykan/nabu-eyes-voice-avatar
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -32,19 +30,16 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          repo_name: nabu-eyes-voice-avatar
           file: dist/nabu-eyes-dashboard-card.js
           asset_name: nabu-eyes-dashboard-card.js
-          tag: ${{ github.ref }}
+          tag: ${{ github.ref_name }}
           overwrite: true
 
       - name: Upload gzipped asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          repo_owner: MankiniChykan
-          repo_name: nabu-eyes-voice-avatar
           file: dist/nabu-eyes-dashboard-card.js.gz
           asset_name: nabu-eyes-dashboard-card.js.gz
-          tag: ${{ github.ref }}
+          tag: ${{ github.ref_name }}
           overwrite: true
