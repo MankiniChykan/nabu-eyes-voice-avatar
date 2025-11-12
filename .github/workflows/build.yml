@@ -38,3 +38,6 @@ jobs:
           name: nabu-eyes-dashboard-card
           path: dist
           if-no-files-found: error
+
+      - name: Clean build outputs
+        run: rm -rf dist
