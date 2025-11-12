@@ -11,17 +11,10 @@ import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 type HaSelectElement = HTMLElement & { value?: string };
 type HaSwitchElement = HTMLElement & { checked?: boolean };
 
-// HA change event payloads we care about
-type EntitiesPickerChange = CustomEvent<{ value?: string[] }>;
-type EntityPickerChange = CustomEvent<{ value?: string }>;
-
-/**
- * Configuration UI for the Nabu Eyes dashboard card allowing users to map
- * Assist entities, event triggers, and asset preferences.
- */
 export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceCardEditor {
   public hass!: HomeAssistant;
   private _config?: NabuEyesDashboardCardConfig;
+  private _bootstrapped = false;
 
   public static properties = {
     hass: { attribute: false },
@@ -44,6 +37,31 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   protected render(): TemplateResult {
     if (!this.hass || !this._config) return html``;
 
+    // One-time bootstrap so selectors show sane defaults immediately
+    if (!this._bootstrapped) {
+      this._bootstrapped = true;
+      const patch: Partial<NabuEyesDashboardCardConfig> = {};
+
+      const discoveredAssist = Object.keys(this.hass.states).filter((e) =>
+        e.startsWith('assist_satellite.')
+      );
+      if (!this._config.assist_entities?.length && discoveredAssist.length) {
+        patch.assist_entities = discoveredAssist;
+      }
+
+      const firstMP =
+        this._config.media_player ??
+        Object.keys(this.hass.states).find((e) => e.startsWith('media_player.'));
+      if (!this._config.media_player && firstMP) patch.media_player = firstMP;
+      if (!this._config.mute_media_player && firstMP) patch.mute_media_player = firstMP;
+
+      if (Object.keys(patch).length) {
+        const merged = { ...this._config, ...patch };
+        this._config = merged;
+        fireEvent(this, 'config-changed', { config: merged });
+      }
+    }
+
     const config = this._config;
 
     return html`
@@ -56,15 +74,22 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ></ha-textfield>
 
         <!-- Assist satellites (multi) -->
-        <ha-entities-picker
+        <ha-entity-picker
           .hass=${this.hass}
           .value=${config.assist_entities ?? []}
           label="Assist satellite entities"
-          domain="assist_satellite"
+          .multiple=${true}
           allow-custom-entity
-          @value-changed=${(e: EntitiesPickerChange) =>
-            this._updateConfig('assist_entities', e.detail?.value ?? [])}
-        ></ha-entities-picker>
+          @value-changed=${(e: CustomEvent) =>
+            this._updateConfig(
+              'assist_entities',
+              Array.isArray(e.detail?.value)
+                ? (e.detail.value as string[])
+                : e.detail?.value
+                ? [e.detail.value as string]
+                : []
+            )}
+        ></ha-entity-picker>
 
         <!-- Media player for equalizer (single) -->
         <ha-entity-picker
@@ -73,30 +98,20 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           label="Media player for equalizer"
           domain="media_player"
           allow-custom-entity
-          @value-changed=${(e: EntityPickerChange) =>
-            this._updateConfig('media_player', e.detail?.value || undefined)}
+          @value-changed=${(e: CustomEvent) =>
+            this._updateConfig('media_player', (e.detail?.value as string) || undefined)}
         ></ha-entity-picker>
 
         <!-- Media player for mute state (single) -->
         <ha-entity-picker
           .hass=${this.hass}
-          .value=${config.mute_media_player ?? ''}
+          .value=${config.mute_media_player ?? config.media_player ?? ''}
           label="Media player for mute state"
           domain="media_player"
           allow-custom-entity
-          @value-changed=${(e: EntityPickerChange) =>
-            this._updateConfig('mute_media_player', e.detail?.value || undefined)}
+          @value-changed=${(e: CustomEvent) =>
+            this._updateConfig('mute_media_player', (e.detail?.value as string) || undefined)}
         ></ha-entity-picker>
-
-        <!-- Alarm / doorbell entities (multi) -->
-        <ha-entities-picker
-          .hass=${this.hass}
-          .value=${config.alarm_entities ?? []}
-          label="Alarm / doorbell entities"
-          allow-custom-entity
-          @value-changed=${(e: EntitiesPickerChange) =>
-            this._updateConfig('alarm_entities', e.detail?.value ?? [])}
-        ></ha-entities-picker>
 
         <ha-select
           .value=${config.playing_variant ?? 'nabu_playing_dash.gif'}
@@ -105,7 +120,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @closed=${this._stopPropagation}
         >
           ${Object.entries(PLAYING_VARIANTS).map(
-            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`,
+            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`
           )}
         </ha-select>
 
@@ -116,7 +131,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @closed=${this._stopPropagation}
         >
           ${Object.entries(EQUALIZER_VARIANTS).map(
-            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`,
+            ([key, label]) => html`<mwc-list-item .value=${key}>${label}</mwc-list-item>`
           )}
         </ha-select>
 
@@ -131,7 +146,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         <div class="switch-row">
           <span>Hide when idle</span>
           <ha-switch
-            .checked=${config.hide_when_idle ?? true}
+            .checked=${config.hide_when_idle ?? false}
             @change=${this._handleHideWhenIdle}
           ></ha-switch>
         </div>
@@ -140,13 +155,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ${this._renderEventInputs(
           'Countdown clear events',
           'countdown_clear_events',
-          config.countdown_clear_events,
+          config.countdown_clear_events
         )}
         ${this._renderEventInputs('Alarm events', 'alarm_events', config.alarm_events)}
         ${this._renderEventInputs(
           'Alarm clear events',
           'alarm_clear_events',
-          config.alarm_clear_events,
+          config.alarm_clear_events
         )}
 
         <ha-textfield
@@ -163,7 +178,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   private _renderEventInputs(
     label: string,
     field: keyof NabuEyesDashboardCardConfig,
-    values?: string[],
+    values?: string[]
   ): TemplateResult {
     return html`
       <ha-textfield
@@ -179,7 +194,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   private _handleTextValue(event: Event): void {
     const target = event.currentTarget as HTMLInputElement & { dataset: { field?: string } };
     if (!target?.dataset?.field || !this._config) return;
-
     const value = target.value;
     this._updateConfig(target.dataset.field as keyof NabuEyesDashboardCardConfig, value || undefined);
   }
@@ -187,12 +201,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   private _handleStringArray(event: Event): void {
     const target = event.currentTarget as HTMLInputElement & { dataset: { field?: string } };
     if (!target?.dataset?.field || !this._config) return;
-
     const value = target.value
       .split(',')
       .map((item) => item.trim())
       .filter((item) => item.length > 0);
-
     this._updateConfig(target.dataset.field as keyof NabuEyesDashboardCardConfig, value as any);
   }
 
@@ -223,15 +235,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
   private _updateConfig<K extends keyof NabuEyesDashboardCardConfig>(
     field: K,
-    value: NabuEyesDashboardCardConfig[K],
+    value: NabuEyesDashboardCardConfig[K]
   ): void {
     if (!this._config) return;
-
-    const newConfig: NabuEyesDashboardCardConfig = {
-      ...this._config,
-      [field]: value,
-    };
-
+    const newConfig: NabuEyesDashboardCardConfig = { ...this._config, [field]: value };
     this._config = newConfig;
     fireEvent(this, 'config-changed', { config: newConfig });
   }
@@ -243,7 +250,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         flex-direction: column;
         gap: 16px;
       }
-
       .switch-row {
         display: flex;
         align-items: center;
