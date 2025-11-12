@@ -1,6 +1,6 @@
 {
   "name": "nabu-eyes-voice-avatar",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Nabu Eyes dashboard custom card for Home Assistant",
   "scripts": {
     "build": "node ./tools/prepare-dist.js && rollup -c && node ./tools/compress-dist.js",
