@@ -13,6 +13,7 @@ import {
   PLAYING_VARIANTS,
   STATE_ASSET_MAP,
 } from './const';
+import './editor/nabu-eyes-dashboard-card-editor';
 
 /**
  * Configuration schema for the Nabu Eyes dashboard card.
@@ -82,6 +83,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       type: 'custom:nabu-eyes-dashboard-card',
       name: 'Nabu Eyes',
       assist_entities: [],
+      asset_path: DEFAULT_ASSET_PATH,
     };
   }
 
@@ -129,6 +131,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         ? normalizedConfig.alarm_active_states
         : [...DEFAULT_ALARM_ACTIVE_STATES],
     );
+
+    const assetPath = normalizedConfig.asset_path?.trim();
+    normalizedConfig.asset_path =
+      assetPath && assetPath.length > 0 ? assetPath : DEFAULT_ASSET_PATH;
 
     if (
       !normalizedConfig.playing_variant ||
@@ -457,6 +463,35 @@ declare global {
   }
 }
 
-if (!customElements.get('nabu-eyes-dashboard-card')) {
-  customElements.define('nabu-eyes-dashboard-card', NabuEyesDashboardCard);
+type CustomCardDefinition = {
+  type: string;
+  name: string;
+  description: string;
+  preview?: boolean;
+};
+
+declare global {
+  interface Window {
+    customCards?: CustomCardDefinition[];
+  }
+}
+
+const CARD_TAG = 'nabu-eyes-dashboard-card';
+
+if (!customElements.get(CARD_TAG)) {
+  customElements.define(CARD_TAG, NabuEyesDashboardCard);
+}
+
+if (typeof window !== 'undefined') {
+  window.customCards = window.customCards ?? [];
+
+  const hasDefinition = window.customCards.some((card) => card.type === CARD_TAG);
+  if (!hasDefinition) {
+    window.customCards.push({
+      type: CARD_TAG,
+      name: 'Nabu Eyes Dashboard',
+      description: 'Animated Assist avatar with media and alarm indicators.',
+      preview: true,
+    });
+  }
 }

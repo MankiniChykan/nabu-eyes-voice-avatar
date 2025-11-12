@@ -1,4 +1,4 @@
-export const DEFAULT_ASSET_PATH = '/local/nabu_eyes_dashboard';
+export const DEFAULT_ASSET_PATH = '/hacsfiles/nabu-eyes-voice-avatar/nabu_eyes_dashboard';
 
 export const PLAYING_VARIANTS = {
   'nabu_playing_dash.gif': 'Nabu Playing',
