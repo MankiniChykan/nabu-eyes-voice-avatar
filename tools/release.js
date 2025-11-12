@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // tools/release.js — Usage: npm run release -- <version>
 
-import { execSync } from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
