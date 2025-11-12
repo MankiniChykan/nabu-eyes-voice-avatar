@@ -22,12 +22,12 @@ import './editor/nabu-eyes-dashboard-card-editor';
  */
 export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   name?: string;
-  assist_entities?: string[]; // made optional so the editor opens cleanly
+  assist_entities?: string[]; // optional so the editor opens cleanly
   media_player?: string;
   mute_media_player?: string;
   hide_when_idle?: boolean;
-  playing_variant?: NabuEyesPlayingVariant;
-  media_player_equalizer?: NabuEyesEqualizerVariant;
+  playing_variant?: keyof typeof PLAYING_VARIANTS;
+  media_player_equalizer?: keyof typeof EQUALIZER_VARIANTS;
   asset_path?: string;
   countdown_events?: string[];
   countdown_clear_events?: string[];
@@ -39,8 +39,6 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
 
 type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 'playing';
 type NabuEyesPseudoState = 'alarm' | 'countdown' | 'mute';
-type NabuEyesPlayingVariant = keyof typeof PLAYING_VARIANTS;
-type NabuEyesEqualizerVariant = keyof typeof EQUALIZER_VARIANTS;
 
 type UnsubscribeFunc = () => void;
 
@@ -338,10 +336,19 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return `${basePath}${filename}`;
   }
 
+  /** Auto-discover assist_satellite.* if none configured so the card works on first load */
   private _computeAssistState(): NabuEyesAssistState | undefined {
-    if (!this._config?.assist_entities?.length || !this.hass) return undefined;
+    if (!this.hass) return undefined;
 
-    const states = this._config.assist_entities
+    const configured = this._config?.assist_entities ?? [];
+    const sourceIds =
+      configured.length > 0
+        ? configured
+        : Object.keys(this.hass.states).filter((eid) => eid.startsWith('assist_satellite.'));
+
+    if (sourceIds.length === 0) return undefined;
+
+    const states = sourceIds
       .map((entityId) => this.hass.states[entityId]?.state)
       .filter((state): state is string => typeof state === 'string');
 
