@@ -21,97 +21,23 @@ const parseVersionArg = (argv = process.argv) => {
   return input.replace(/^v/, '');
 };
 
-const guessRepoSlug = (execImpl = execSync) => {
+const stagedVersionFiles = ['package.json', 'package-lock.json'].filter((file) =>
+  fs.existsSync(file),
+);
+if (stagedVersionFiles.length > 0) {
   try {
-    const remoteUrl = execImpl('git config --get remote.origin.url', { encoding: 'utf8' }).trim();
-    const match = remoteUrl.match(/github\.com[:/]([^\s]+?)(?:\.git)?$/i);
-    return match ? match[1] : null;
+    sh(`git add ${stagedVersionFiles.map((file) => `"${file}"`).join(' ')}`);
   } catch {
-    return null;
+    console.log('ℹ️  Unable to stage version files (already staged or unchanged).');
   }
-};
+}
 
-const resolveGitHubToken = (env = process.env) =>
-  env.GITHUB_TOKEN || env.GH_TOKEN || env.GITHUB_PAT || env.GITHUB_PERSONAL_TOKEN;
-
-const apiRequest = async (fetchImpl, url, { token, method = 'GET', headers = {}, body } = {}) => {
-  const baseHeaders = {
-    Accept: 'application/vnd.github+json',
-    'User-Agent': 'nabu-eyes-release-script',
-  };
-  if (token) {
-    baseHeaders.Authorization = `Bearer ${token}`;
-  }
-  const response = await fetchImpl(url, {
-    method,
-    headers: { ...baseHeaders, ...headers },
-    body,
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`GitHub API ${response.status} ${response.statusText}: ${message}`);
-  }
-
-  return response;
-};
-
-const ensureReleaseAndUploadAssets = async (versionToUpload, assets, overrides = {}) => {
-  const token =
-    'token' in overrides ? overrides.token : resolveGitHubToken(overrides.env || process.env);
-  if (!token) {
-    console.log('ℹ️  Skipping release asset upload (no GitHub token provided).');
-    return;
-  }
-
-  const repoSlug =
-    'repoSlug' in overrides ? overrides.repoSlug : guessRepoSlug(overrides.execImpl || execSync);
-  if (!repoSlug) {
-    console.log('ℹ️  Skipping release asset upload (unable to determine GitHub repository slug).');
-    return;
-  }
-
-  const apiRoot = (process.env.GITHUB_API_URL || 'https://api.github.com').replace(/\/$/, '');
-  const tagName = `v${versionToUpload}`;
-  const releasesBaseUrl = `${apiRoot}/repos/${repoSlug}/releases`;
-  const tagLookupUrl = `${releasesBaseUrl}/tags/${encodeURIComponent(tagName)}`;
-
-  const fetchImpl = overrides.fetchImpl || globalThis.fetch;
-  if (typeof fetchImpl !== 'function') {
-    console.log('ℹ️  Skipping release asset upload (no fetch implementation available).');
-    return;
-  }
-
-  const execImpl = overrides.execImpl || execSync;
-  const fsImpl = overrides.fsImpl || fs;
-
-  let release;
-  try {
-    const response = await apiRequest(fetchImpl, tagLookupUrl, { token });
-    release = await response.json();
-    console.log(`ℹ️  Found existing GitHub release for ${tagName} (id: ${release.id}).`);
-  } catch (error) {
-    if (!String(error.message).includes('404')) {
-      console.error('❌  Failed to retrieve GitHub release metadata.');
-      throw error;
-    }
-
-    console.log(`ℹ️  Creating GitHub release for ${tagName}.`);
-    const targetCommitish = execImpl('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-    const createResponse = await apiRequest(fetchImpl, releasesBaseUrl, {
-      token,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tag_name: tagName,
-        name: tagName,
-        draft: false,
-        prerelease: false,
-        target_commitish: targetCommitish,
-      }),
-    });
-    release = await createResponse.json();
-  }
+const js = path.resolve('dist/nabu-eyes-dashboard-card.js');
+const gz = `${js}.gz`;
+if (!fs.existsSync(js) || !fs.existsSync(gz)) {
+  console.error('❌  Build output not found. Run "npm run build" first.');
+  process.exit(1);
+}
 
   if (!release?.upload_url) {
     console.log('ℹ️  Release detected but upload URL missing; skipping asset upload.');
