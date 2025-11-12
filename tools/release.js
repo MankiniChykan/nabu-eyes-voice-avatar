@@ -85,38 +85,6 @@ const apiRequest = async (
   return response;
 };
 
-const guessContentType = (assetName) => {
-  if (assetName.endsWith('.gz')) {
-    return 'application/gzip';
-  }
-  if (assetName.endsWith('.js')) {
-    return 'application/javascript';
-  }
-  if (assetName.endsWith('.gif')) {
-    return 'image/gif';
-  }
-  return 'application/octet-stream';
-};
-
-const collectFilesRecursively = (directory, fsImpl = fs) => {
-  const collected = [];
-  if (!directory || !fsImpl.existsSync(directory)) {
-    return collected;
-  }
-
-  for (const entry of fsImpl.readdirSync(directory)) {
-    const resolved = path.join(directory, entry);
-    const stats = fsImpl.statSync(resolved);
-    if (stats.isDirectory()) {
-      collected.push(...collectFilesRecursively(resolved, fsImpl));
-    } else {
-      collected.push(resolved);
-    }
-  }
-
-  return collected;
-};
-
 const ensureReleaseAndUploadAssets = async (
   version,
   assets,
@@ -204,7 +172,7 @@ const ensureReleaseAndUploadAssets = async (
     }
 
     const fileBuffer = fsImpl.readFileSync(assetPath);
-    const contentType = guessContentType(assetName);
+    const contentType = assetName.endsWith('.gz') ? 'application/gzip' : 'application/javascript';
 
     console.log(`⬆️  Uploading ${assetName} to GitHub release ${tagName}.`);
     await apiRequest(fetchImpl, `${uploadBase}?name=${encodeURIComponent(assetName)}`, {
@@ -244,9 +212,6 @@ const performRelease = async (version, options = {}) => {
     process.exit(1);
   }
 
-  const assetDir = path.resolve('dist/nabu_eyes_dashboard');
-  const assetFiles = collectFilesRecursively(assetDir);
-
   try {
     const forceAddTargets = [`"${js}"`, `"${gz}"`, ...(assetFiles.map((file) => `"${file}"`))];
     sh(`git add -f ${forceAddTargets.join(' ')}`);
@@ -270,7 +235,7 @@ const performRelease = async (version, options = {}) => {
     console.warn(`⚠️  Unable to push tag to origin: ${error?.message || error}`);
   }
 
-  await ensureReleaseAndUploadAssets(version, [js, gz, ...assetFiles], options);
+  await ensureReleaseAndUploadAssets(version, [js, gz], options);
 };
 
 const main = async (argv = process.argv) => {
