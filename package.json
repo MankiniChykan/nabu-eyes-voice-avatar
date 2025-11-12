@@ -3,7 +3,7 @@
   "version": "0.0.16",
   "description": "Nabu Eyes dashboard custom card for Home Assistant",
   "scripts": {
-    "build": "node ./tools/prepare-dist.js && rollup -c && node ./tools/compress-dist.js",
+    "build": "node ./tools/prepare-dist.js && rollup -c && node ./tools/copy-assets.js && node ./tools/compress-dist.js",
     "watch": "rollup -c -w",
     "lint": "eslint --ext .ts src",
     "release": "node ./tools/release.js",
