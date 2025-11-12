@@ -15,7 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: MankiniChykan/nabu-eyes-voice-avatar
           fetch-depth: 0
 
       - name: Derive version from tag
@@ -38,9 +37,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Optional: keep your changelog/version checks
       - name: Update changelog and verify release assets
         run: npm run release -- ${{ steps.version.outputs.normalized }}
 
+      # Optional: checksums for the main artifacts (keep if you want)
       - name: Create checksums
         run: |
           cd dist
@@ -48,14 +49,11 @@ jobs:
           sha256sum nabu-eyes-dashboard-card.js.gz > nabu-eyes-dashboard-card.js.gz.sha256
           ls -l
 
+      # 🔑 Upload EVERYTHING from dist/ (includes your GIFs)
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          repository: MankiniChykan/nabu-eyes-voice-avatar
           files: |
-            dist/nabu-eyes-dashboard-card.js
-            dist/nabu-eyes-dashboard-card.js.gz
-            dist/nabu-eyes-dashboard-card.js.sha256
-            dist/nabu-eyes-dashboard-card.js.gz.sha256
-          fail_on_unmatched_files: true
+            dist/**
+          fail_on_unmatched_files: false
           generate_release_notes: true

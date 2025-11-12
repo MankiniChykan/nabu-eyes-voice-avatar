@@ -1,8 +1,10 @@
+// rollup.config.js
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import typescript from 'rollup-plugin-typescript2';
+import copy from 'rollup-plugin-copy';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -25,6 +27,14 @@ export default {
       tsconfig: './tsconfig.json',
       useTsconfigDeclarationDir: true,
     }),
-    production && terser()
+    // Copy GIF/assets into dist so HACS serves them under /hacsfiles/<repo>/...
+    copy({
+      targets: [
+        { src: 'src/nabu_eyes_dashboard/**/*', dest: 'dist/nabu_eyes_dashboard' },
+      ],
+      hook: 'writeBundle', // ensure dist/ exists first
+      verbose: true,
+    }),
+    production && terser(),
   ],
 };
