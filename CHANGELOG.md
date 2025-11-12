@@ -3,16 +3,6 @@ nabu-eyes-voice-avatar
 All notable changes to this project are documented here.
 This project follows Semantic Versioning: MAJOR.MINOR.PATCH.
 
-[Unreleased]
-
-Fixed
-
-- Restored ESLint compatibility by routing the configuration through the ESM
-  parser shim so `npm run lint` works under Node.js 24.
-
-- Converted the release helper to a native ES module so `npm run release` works in environments that enforce the
-  repository's ESM module mode.
-
 [0.0.2] – 2025-11-13
 Added
 
