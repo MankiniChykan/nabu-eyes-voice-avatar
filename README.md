@@ -31,6 +31,10 @@ events published on the Home Assistant event bus.
    type: module
    ```
 
+   When installed through HACS the resource is exposed automatically at
+   `/hacsfiles/nabu-eyes-voice-avatar/nabu-eyes-dashboard-card.js`, so you can
+   reference that URL instead of copying the build output manually.
+
 ### Example Lovelace Configuration
 
 ```yaml
