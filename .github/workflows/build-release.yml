@@ -10,29 +10,42 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: MankiniChykan/nabu-eyes-voice-avatar
 
-      - name: Pre check
-        run: ls -al /home/runner/work/simple-air-comfort-card/simple-air-comfort-card/
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-      - name: Build
-        run: |
-          cd /home/runner/work/simple-air-comfort-card/simple-air-comfort-card
-          npm install
-          npm run build
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Post check
-        run: ls -al /home/runner/work/simple-air-comfort-card/simple-air-comfort-card/dist/
+      - name: Build bundle
+        run: npm run build
 
-        # Upload build file to the release as an asset.
-      - name: Upload as release asset
+      - name: Upload JavaScript asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: /home/runner/work/simple-air-comfort-card/simple-air-comfort-card/dist/simple-air-comfort-card.js
-          asset_name: simple-air-comfort-card.js
+          repo_owner: MankiniChykan
+          repo_name: nabu-eyes-voice-avatar
+          file: dist/nabu-eyes-dashboard-card.js
+          asset_name: nabu-eyes-dashboard-card.js
+          tag: ${{ github.ref }}
+          overwrite: true
+
+      - name: Upload gzipped asset
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_owner: MankiniChykan
+          repo_name: nabu-eyes-voice-avatar
+          file: dist/nabu-eyes-dashboard-card.js.gz
+          asset_name: nabu-eyes-dashboard-card.js.gz
           tag: ${{ github.ref }}
           overwrite: true

@@ -93,6 +93,9 @@ Tag and publish the release on GitHub.
 
 Push tag to main for HACS to detect.
 
+- On release, the agent must run `node ./tools/update-changelog.js --version <x.y.z> --write` to promote "Unreleased" to the tagged version and re-seed the Unreleased section.
+- PR builds must not write the changelog; they only prove the build outputs exist, then delete `dist/` before committing.
+
 Release Commands
 
 Development release:
