@@ -21,6 +21,17 @@ if ((pkg.version || '').trim() !== version) {
   console.log('ℹ️  package.json already at target version, skipping bump');
 }
 
+const stagedVersionFiles = ['package.json', 'package-lock.json'].filter((file) =>
+  fs.existsSync(file),
+);
+if (stagedVersionFiles.length > 0) {
+  try {
+    sh(`git add ${stagedVersionFiles.map((file) => `"${file}"`).join(' ')}`);
+  } catch {
+    console.log('ℹ️  Unable to stage version files (already staged or unchanged).');
+  }
+}
+
 const js = path.resolve('dist/nabu-eyes-dashboard-card.js');
 const gz = `${js}.gz`;
 if (!fs.existsSync(js) || !fs.existsSync(gz)) {
