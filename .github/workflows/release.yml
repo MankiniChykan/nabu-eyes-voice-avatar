@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build distribution bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build bundle
+        run: npm run build
+
+      - name: Verify compiled distribution
+        run: npm run verify:dist
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p release/dist
+          cp hacs.json release/
+          cp README.md release/
+          cp CHANGELOG.md release/
+          cp -r dist/. release/dist/
+
+      - name: Archive release assets
+        run: |
+          cd release
+          zip -r ../nabu-eyes-voice-avatar.zip .
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: nabu-eyes-voice-avatar.zip
+          fail_on_unmatched_files: true

@@ -1,6 +1,8 @@
 # nabu-eyes-voice-avatar
 Voice Avatar for Home Assistant and Awtrix3 (Ulanzi Clock)
 
+![Nabu Eyes dashboard card preview](assets/card-preview.svg)
+
 ## Nabu Eyes Dashboard Card
 
 The repository provides a Home Assistant Lovelace card that displays the animated Nabu Eyes

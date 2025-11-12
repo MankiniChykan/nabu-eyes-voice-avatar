@@ -3,10 +3,58 @@ nabu-eyes-voice-avatar
 All notable changes to this project are documented here.
 This project follows Semantic Versioning: MAJOR.MINOR.PATCH.
 
+[Unreleased]
+
+Added
+
+- Added a distribution verification script that ensures the compiled bundle
+  lives under `dist/` and is present before packaging releases.
+- Included a vector-based repository preview so the README satisfies HACS image
+  requirements without adding binary assets to the repository.
+
+Changed
+
+- Updated the CI and release workflows to run the distribution verification so
+  TypeScript sources never leak outside of `src/` during automation.
+- Replaced the bespoke ESLint parser with a vendored
+  `@typescript-eslint/parser` implementation and stub plugin so the
+  configuration matches community expectations while remaining compatible with
+  offline installs.
+- Reintroduced the npm lockfile and switched automation back to `npm ci` for
+  reproducible installs during CI and release builds.
+- Corrected the package metadata to reference the canonical GitHub repository.
+
+Removed
+
+- Stopped tracking the compiled `dist/` artifacts in git so pull requests avoid
+  binary payloads while release automation still packages the bundle.
+
+Fixed
+
+- Converted the release helper to a native ES module so `npm run release`
+  works in environments that enforce the repository's ESM module mode.
+- Ensured HACS validation no longer fails on the README image check.
+
+[0.0.2] – 2025-11-13
+Added
+
+- Enforced semantic-version monotonicity in the release helper and clarified
+  prerelease handling so `npm run release` fails fast when a version is missing
+  from the changelog or regresses the package version.
+- Converted project tooling to explicit CommonJS modules and marked the package
+  as ESM to satisfy HACS repository structure validation and eliminate Rollup
+  build warnings.
+
+Changed
+
+- Normalised project metadata so the published package version matches the
+  initial release baseline.
+
 [0.0.1] – 2025-11-12
 Added
 
 Initial project setup and repository scaffolding.
+
 
 rollup.config.js with ES-module build and TypeScript bundling via rollup-plugin-typescript2.
 
