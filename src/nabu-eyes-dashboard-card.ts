@@ -56,6 +56,11 @@ const ASSIST_STATE_PRIORITY: ReadonlyArray<NabuEyesAssistState> = [
   'idle',
 ];
 
+type AssetDescriptor = {
+  src: string;
+  glowClass: string;
+};
+
 export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   public hass!: HomeAssistant;
   private _config?: NabuEyesDashboardCardConfig;
@@ -130,6 +135,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     ) {
       normalizedConfig.playing_variant = DEFAULT_PLAYING_VARIANT;
     }
+
     if (
       normalizedConfig.media_player_equalizer &&
       !(normalizedConfig.media_player_equalizer in EQUALIZER_VARIANTS)
@@ -252,24 +258,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     }
   }
 
-  private _getGlowColorForFilename(filename: string): string {
+  /** Map asset filename to a soft glow colour class */
+  private _inferGlowClass(filename: string): string {
     const lower = filename.toLowerCase();
 
-    // Match your four idle variants (and their matching state variants)
-    if (lower.includes('purple')) {
-      // Magenta / purple
-      return 'rgba(255, 0, 180, 0.45)';
-    }
-    if (lower.includes('sepia')) {
-      // Warm amber
-      return 'rgba(255, 200, 64, 0.45)';
-    }
-    if (lower.includes('light')) {
-      // Bright cyan
-      return 'rgba(0, 255, 255, 0.45)';
-    }
-    // Default blue
-    return 'rgba(0, 210, 255, 0.45)';
+    if (lower.includes('_dash_light')) return 'glow-light';
+    if (lower.includes('_dash_purple')) return 'glow-purple';
+    if (lower.includes('_dash_sepia')) return 'glow-sepia';
+
+    // Default blue theme
+    return 'glow-blue';
   }
 
   protected render(): TemplateResult {
@@ -278,18 +276,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const asset = this._determineAsset();
     if (!asset) return html``;
 
-    const { src, glowColor } = asset;
-    const glowClass = glowColor ? 'glow' : '';
-    const glowStyle = glowColor ? `--nabu-eyes-glow-color: ${glowColor};` : '';
+    const { src, glowClass } = asset;
 
     return html`
       <div class="avatar-container">
-        <img class=${glowClass} style=${glowStyle} src="${src}" alt="Nabu Eyes state" />
+        <img class="avatar ${glowClass}" src="${src}" alt="Nabu Eyes state" />
       </div>
     `;
   }
 
-  private _determineAsset(): { src: string; glowColor: string | null } | undefined {
+  private _determineAsset(): AssetDescriptor | undefined {
     if (!this._config) return undefined;
 
     const basePath =
@@ -297,91 +293,69 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         ? this._config.asset_path
         : DEFAULT_ASSET_PATH;
 
-    const alarmActive = this._alarmActive || this._isAlarmEntityActive();
-    if (alarmActive) {
-      const filename = this._resolveStateFilename('alarm');
+    const choose = (state: NabuEyesAssistState | NabuEyesPseudoState): AssetDescriptor => {
+      const filename = this._resolveStateFilename(state);
       return {
         src: this._composeAssetPath(basePath, filename),
-        glowColor: this._getGlowColorForFilename(filename),
+        glowClass: this._inferGlowClass(filename),
       };
+    };
+
+    const alarmActive = this._alarmActive || this._isAlarmEntityActive();
+    if (alarmActive) {
+      return choose('alarm');
     }
 
     if (this._countdownActive) {
-      const filename = this._resolveStateFilename('countdown');
-      return {
-        src: this._composeAssetPath(basePath, filename),
-        glowColor: this._getGlowColorForFilename(filename),
-      };
+      return choose('countdown');
     }
 
     const assistState = this._computeAssistState();
 
     if (assistState === 'playing') {
-      const filename = this._resolveStateFilename('playing');
-      return {
-        src: this._composeAssetPath(basePath, filename),
-        glowColor: this._getGlowColorForFilename(filename),
-      };
+      return choose('playing');
     }
 
     if (assistState && assistState !== 'idle') {
-      const filename = this._resolveStateFilename(assistState);
-      return {
-        src: this._composeAssetPath(basePath, filename),
-        glowColor: this._getGlowColorForFilename(filename),
-      };
+      return choose(assistState);
     }
 
     const mediaPlayerAsset = this._determineMediaPlayerAsset(basePath);
-    if (mediaPlayerAsset) {
-      const filePart = mediaPlayerAsset.substring(mediaPlayerAsset.lastIndexOf('/') + 1);
-      return {
-        src: mediaPlayerAsset,
-        glowColor: this._getGlowColorForFilename(filePart),
-      };
-    }
+    if (mediaPlayerAsset) return mediaPlayerAsset;
 
     const muteAsset = this._determineMuteAsset(basePath);
-    if (muteAsset) {
-      const filePart = muteAsset.substring(muteAsset.lastIndexOf('/') + 1);
-      return {
-        src: muteAsset,
-        glowColor: this._getGlowColorForFilename(filePart),
-      };
-    }
+    if (muteAsset) return muteAsset;
 
-    // Idle / fallback idle: always glow
+    // Idle / fallback idle (with glow)
     if (assistState === 'idle') {
       if (this._config.hide_when_idle) return undefined;
-      const filename = this._resolveStateFilename('idle');
-      return {
-        src: this._composeAssetPath(basePath, filename),
-        glowColor: this._getGlowColorForFilename(filename),
-      };
+      return choose('idle');
     }
 
     if (this._config.hide_when_idle) return undefined;
-    const fallbackIdle = this._resolveStateFilename('idle');
-    return {
-      src: this._composeAssetPath(basePath, fallbackIdle),
-      glowColor: this._getGlowColorForFilename(fallbackIdle),
-    };
+    return choose('idle');
   }
 
-  private _determineMediaPlayerAsset(basePath: string): string | undefined {
+  private _determineMediaPlayerAsset(basePath: string): AssetDescriptor | undefined {
     if (!this._config?.media_player || !this.hass) return undefined;
+
     const mediaState = this.hass.states[this._config.media_player];
     if (!mediaState) return undefined;
 
     if (mediaState.state === 'playing') {
       const variant = this._config.media_player_equalizer ?? DEFAULT_EQUALIZER_VARIANT;
       const filename = EQUALIZER_VARIANTS[variant] ? variant : DEFAULT_EQUALIZER_VARIANT;
-      return this._composeAssetPath(basePath, filename);
+      const src = this._composeAssetPath(basePath, filename);
+      return {
+        src,
+        glowClass: this._inferGlowClass(filename),
+      };
     }
+
     return undefined;
   }
 
-  private _determineMuteAsset(basePath: string): string | undefined {
+  private _determineMuteAsset(basePath: string): AssetDescriptor | undefined {
     const target = this._config?.mute_media_player ?? this._config?.media_player;
     if (!target || !this.hass) return undefined;
 
@@ -392,7 +366,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     if (!isMuted) return undefined;
 
     const filename = this._resolveStateFilename('mute');
-    return this._composeAssetPath(basePath, filename);
+    return {
+      src: this._composeAssetPath(basePath, filename),
+      glowClass: this._inferGlowClass(filename),
+    };
   }
 
   private _isAlarmEntityActive(): boolean {
@@ -439,26 +416,40 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         display: block;
-        /* Default glow, overridden per-image via inline var */
-        --nabu-eyes-glow-color: rgba(0, 210, 255, 0.45);
-        --nabu-eyes-glow-radius: 36px;
+        /* Soft overall glow size */
+        --nabu-eyes-glow-radius: 30px;
       }
 
       .avatar-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 64px 0;
+        /* Extra vertical padding so drop-shadow glow stays within the card */
+        padding: 48px 0;
+        box-sizing: border-box;
       }
 
-      img {
+      .avatar {
         display: block;
         max-width: 100%;
         height: auto;
       }
 
-      img.glow {
-        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) var(--nabu-eyes-glow-color));
+      /* Variant glow colours – soft, not retina-searing */
+      .glow-blue {
+        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(0, 255, 255, 0.35));
+      }
+
+      .glow-light {
+        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(0, 255, 255, 0.4));
+      }
+
+      .glow-purple {
+        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(255, 0, 255, 0.38));
+      }
+
+      .glow-sepia {
+        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(255, 210, 0, 0.35));
       }
     `;
   }
