@@ -437,7 +437,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
       /* Variant glow colours – soft, not retina-searing */
       .glow-blue {
-        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(0, 255, 255, 0.35));
+        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(0, 21, 255, 0.35));
       }
 
       .glow-light {
