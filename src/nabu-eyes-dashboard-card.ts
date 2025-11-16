@@ -252,24 +252,44 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     }
   }
 
+  private _getGlowColorForFilename(filename: string): string {
+    const lower = filename.toLowerCase();
+
+    // Match your four idle variants (and their matching state variants)
+    if (lower.includes('purple')) {
+      // Magenta / purple
+      return 'rgba(255, 0, 180, 0.45)';
+    }
+    if (lower.includes('sepia')) {
+      // Warm amber
+      return 'rgba(255, 200, 64, 0.45)';
+    }
+    if (lower.includes('light')) {
+      // Bright cyan
+      return 'rgba(0, 255, 255, 0.45)';
+    }
+    // Default blue
+    return 'rgba(0, 210, 255, 0.45)';
+  }
+
   protected render(): TemplateResult {
     if (!this._config) return html``;
 
     const asset = this._determineAsset();
     if (!asset) return html``;
 
-    const { src, glow } = asset;
+    const { src, glowColor } = asset;
+    const glowClass = glowColor ? 'glow' : '';
+    const glowStyle = glowColor ? `--nabu-eyes-glow-color: ${glowColor};` : '';
 
     return html`
-      <div class="avatar-outer">
-        <div class="avatar-container">
-          <img class=${glow ? 'glow' : ''} src="${src}" alt="Nabu Eyes state" />
-        </div>
+      <div class="avatar-container">
+        <img class=${glowClass} style=${glowStyle} src="${src}" alt="Nabu Eyes state" />
       </div>
     `;
   }
 
-  private _determineAsset(): { src: string; glow: boolean } | undefined {
+  private _determineAsset(): { src: string; glowColor: string | null } | undefined {
     if (!this._config) return undefined;
 
     const basePath =
@@ -280,42 +300,72 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
     if (alarmActive) {
       const filename = this._resolveStateFilename('alarm');
-      return { src: this._composeAssetPath(basePath, filename), glow: true };
+      return {
+        src: this._composeAssetPath(basePath, filename),
+        glowColor: this._getGlowColorForFilename(filename),
+      };
     }
 
     if (this._countdownActive) {
       const filename = this._resolveStateFilename('countdown');
-      return { src: this._composeAssetPath(basePath, filename), glow: true };
+      return {
+        src: this._composeAssetPath(basePath, filename),
+        glowColor: this._getGlowColorForFilename(filename),
+      };
     }
 
     const assistState = this._computeAssistState();
 
     if (assistState === 'playing') {
       const filename = this._resolveStateFilename('playing');
-      return { src: this._composeAssetPath(basePath, filename), glow: true };
+      return {
+        src: this._composeAssetPath(basePath, filename),
+        glowColor: this._getGlowColorForFilename(filename),
+      };
     }
 
     if (assistState && assistState !== 'idle') {
       const filename = this._resolveStateFilename(assistState);
-      return { src: this._composeAssetPath(basePath, filename), glow: true };
+      return {
+        src: this._composeAssetPath(basePath, filename),
+        glowColor: this._getGlowColorForFilename(filename),
+      };
     }
 
     const mediaPlayerAsset = this._determineMediaPlayerAsset(basePath);
-    if (mediaPlayerAsset) return { src: mediaPlayerAsset, glow: true };
+    if (mediaPlayerAsset) {
+      const filePart = mediaPlayerAsset.substring(mediaPlayerAsset.lastIndexOf('/') + 1);
+      return {
+        src: mediaPlayerAsset,
+        glowColor: this._getGlowColorForFilename(filePart),
+      };
+    }
 
     const muteAsset = this._determineMuteAsset(basePath);
-    if (muteAsset) return { src: muteAsset, glow: true };
+    if (muteAsset) {
+      const filePart = muteAsset.substring(muteAsset.lastIndexOf('/') + 1);
+      return {
+        src: muteAsset,
+        glowColor: this._getGlowColorForFilename(filePart),
+      };
+    }
 
-    // Idle / fallback idle: always with glow
+    // Idle / fallback idle: always glow
     if (assistState === 'idle') {
       if (this._config.hide_when_idle) return undefined;
       const filename = this._resolveStateFilename('idle');
-      return { src: this._composeAssetPath(basePath, filename), glow: true };
+      return {
+        src: this._composeAssetPath(basePath, filename),
+        glowColor: this._getGlowColorForFilename(filename),
+      };
     }
 
     if (this._config.hide_when_idle) return undefined;
     const fallbackIdle = this._resolveStateFilename('idle');
-    return { src: this._composeAssetPath(basePath, fallbackIdle), glow: true };
+    return {
+      src: this._composeAssetPath(basePath, fallbackIdle),
+      glowColor: this._getGlowColorForFilename(fallbackIdle),
+    };
   }
 
   private _determineMediaPlayerAsset(basePath: string): string | undefined {
@@ -389,25 +439,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         display: block;
-        height: 100%;
-        /* Glow tunables */
-        --nabu-eyes-glow-color: rgba(0, 255, 255, 0.9);
-        --nabu-eyes-glow-radius: 30px;
-      }
-
-      .avatar-outer {
-        display: flex;
-        align-items: center; /* vertically center in tile */
-        justify-content: center;
-        height: 100%;
-        box-sizing: border-box;
+        /* Default glow, overridden per-image via inline var */
+        --nabu-eyes-glow-color: rgba(0, 210, 255, 0.45);
+        --nabu-eyes-glow-radius: 36px;
       }
 
       .avatar-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 24px 0;
+        padding: 64px 0;
       }
 
       img {
