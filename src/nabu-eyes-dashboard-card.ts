@@ -261,8 +261,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const { src, glow } = asset;
 
     return html`
-      <div class="avatar-container">
-        <img class=${glow ? 'glow' : ''} src="${src}" alt="Nabu Eyes state" />
+      <div class="avatar-container ${glow ? 'glow' : ''}">
+        <img src="${src}" alt="Nabu Eyes state" />
       </div>
     `;
   }
@@ -304,7 +304,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const muteAsset = this._determineMuteAsset(basePath);
     if (muteAsset) return { src: muteAsset, glow: true };
 
-    // Idle or fallback idle: no CSS glow to avoid top/bottom lines
+    // Idle / fallback idle: no CSS glow to avoid artifact lines
     if (assistState === 'idle') {
       if (this._config.hide_when_idle) return undefined;
       const filename = this._resolveStateFilename('idle');
@@ -387,8 +387,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         display: block;
-        /* Tune glow colour/intensity via theme or card-mod */
+        /* Tweaks for the glow – override via theme/card-mod if needed */
         --nabu-eyes-glow-color: rgba(0, 255, 255, 0.9);
+        --nabu-eyes-glow-radius: 30px;
       }
 
       .avatar-container {
@@ -397,14 +398,15 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         justify-content: center;
       }
 
+      .avatar-container.glow {
+        box-shadow: 0 0 var(--nabu-eyes-glow-radius) var(--nabu-eyes-glow-color);
+        border-radius: 999px;
+      }
+
       img {
         display: block;
         max-width: 100%;
         height: auto;
-      }
-
-      img.glow {
-        filter: drop-shadow(0 0 10px var(--nabu-eyes-glow-color));
       }
     `;
   }
