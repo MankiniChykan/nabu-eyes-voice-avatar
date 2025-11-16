@@ -413,9 +413,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       .avatar-container img {
         max-width: 100%;
         height: auto;
-        filter: drop-shadow(
-          0 0 10px var(--nabu-eyes-glow-color, rgba(0, 255, 255, 0.9))
-        );
+        filter: drop-shadow(0 0 10px var(--nabu-eyes-glow-color, rgba(0, 255, 255, 0.9)));
       }
     `;
   }
