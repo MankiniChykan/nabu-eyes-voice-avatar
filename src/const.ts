@@ -20,7 +20,7 @@ export const EQUALIZER_VARIANTS = {
   '2px_equalizer_fader_dash.gif': '2px Equalizer Fader',
   '2px_equalizer_fader_2_dash.gif': '2px Equalizer Fader 2',
   '2px_equalizer_bottom_dash.gif': '2px Equalizer Bottom',
-  // you also have this odd hyphen variant – expose it too if you want it selectable
+  // Optional odd filename variant if you keep it
   '2px_equalizer_fader-dash.gif': '2px Equalizer Fader (alt)',
 
   // Embedded Nabu EQ variants per palette
@@ -41,8 +41,58 @@ export const EQUALIZER_VARIANTS = {
   'nabu_eq3_dash_sepia.gif': 'Nabu EQ3 Sepia',
 } as const satisfies Record<string, string>;
 
+export const STATE_VARIANTS = {
+  idle: {
+    'nabu_idle_dash_blue.gif': 'Idle – Blue',
+    'nabu_idle_dash_light.gif': 'Idle – Light',
+    'nabu_idle_dash_purple.gif': 'Idle – Purple',
+    'nabu_idle_dash_sepia.gif': 'Idle – Sepia',
+  },
+  listening: {
+    'nabu_listening_dash_blue.gif': 'Listening – Blue',
+    'nabu_listening_dash_light.gif': 'Listening – Light',
+    'nabu_listening_dash_purple.gif': 'Listening – Purple',
+    'nabu_listening_dash_sepia.gif': 'Listening – Sepia',
+  },
+  processing: {
+    'nabu_processing_dash_blue.gif': 'Processing – Blue',
+    'nabu_processing_dash_light.gif': 'Processing – Light',
+    'nabu_processing_dash_purple.gif': 'Processing – Purple',
+    'nabu_processing_dash_sepia.gif': 'Processing – Sepia',
+  },
+  responding: {
+    'nabu_responding_dash_blue.gif': 'Responding – Blue',
+    'nabu_responding_dash_light.gif': 'Responding – Light',
+    'nabu_responding_dash_purple.gif': 'Responding – Purple',
+    'nabu_responding_dash_sepia.gif': 'Responding – Sepia',
+  },
+  playing: {
+    'nabu_playing_dash_blue.gif': 'Playing – Blue',
+    'nabu_playing_dash_light.gif': 'Playing – Light',
+    'nabu_playing_dash_purple.gif': 'Playing – Purple',
+    'nabu_playing_dash_sepia.gif': 'Playing – Sepia',
+  },
+  alarm: {
+    'nabu_alarm_dash_blue.gif': 'Alarm – Blue',
+    'nabu_alarm_dash_light.gif': 'Alarm – Light',
+    'nabu_alarm_dash_purple.gif': 'Alarm – Purple',
+    'nabu_alarm_dash_sepia.gif': 'Alarm – Sepia',
+  },
+  countdown: {
+    'nabu_countdown_dash_blue.gif': 'Countdown – Blue',
+    'nabu_countdown_dash_light.gif': 'Countdown – Light',
+    'nabu_countdown_dash_purple.gif': 'Countdown – Purple',
+    'nabu_countdown_dash_sepia.gif': 'Countdown – Sepia',
+  },
+  mute: {
+    'nabu_mute_dash_blue.gif': 'Mute – Blue',
+    'nabu_mute_dash_light.gif': 'Mute – Light',
+    'nabu_mute_dash_purple.gif': 'Mute – Purple',
+    'nabu_mute_dash_sepia.gif': 'Mute – Sepia',
+  },
+} as const;
+
 export const STATE_ASSET_MAP = {
-  // defaulting to blue palette for state-driven assets
   idle: 'nabu_idle_dash_blue.gif',
   listening: 'nabu_listening_dash_blue.gif',
   processing: 'nabu_processing_dash_blue.gif',

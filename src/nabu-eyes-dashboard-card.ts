@@ -32,6 +32,13 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   alarm_clear_events?: string[];
   alarm_entities?: string[];
   alarm_active_states?: readonly string[];
+  state_idle_variant?: string;
+  state_listening_variant?: string;
+  state_processing_variant?: string;
+  state_responding_variant?: string;
+  state_alarm_variant?: string;
+  state_countdown_variant?: string;
+  state_mute_variant?: string;
 }
 
 type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 'playing';
@@ -220,6 +227,31 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return 3;
   }
 
+  private _resolveStateFilename(state: NabuEyesAssistState | NabuEyesPseudoState): string {
+    if (!this._config) return STATE_ASSET_MAP_TYPED[state];
+
+    switch (state) {
+      case 'idle':
+        return this._config.state_idle_variant || STATE_ASSET_MAP_TYPED.idle;
+      case 'listening':
+        return this._config.state_listening_variant || STATE_ASSET_MAP_TYPED.listening;
+      case 'processing':
+        return this._config.state_processing_variant || STATE_ASSET_MAP_TYPED.processing;
+      case 'responding':
+        return this._config.state_responding_variant || STATE_ASSET_MAP_TYPED.responding;
+      case 'playing':
+        return this._config.playing_variant || STATE_ASSET_MAP_TYPED.playing;
+      case 'alarm':
+        return this._config.state_alarm_variant || STATE_ASSET_MAP_TYPED.alarm;
+      case 'countdown':
+        return this._config.state_countdown_variant || STATE_ASSET_MAP_TYPED.countdown;
+      case 'mute':
+        return this._config.state_mute_variant || STATE_ASSET_MAP_TYPED.mute;
+      default:
+        return STATE_ASSET_MAP_TYPED[state];
+    }
+  }
+
   protected render(): TemplateResult {
     if (!this._config) return html``;
 
@@ -245,10 +277,15 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         : DEFAULT_ASSET_PATH;
 
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
-    if (alarmActive) return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.alarm);
+    if (alarmActive) {
+      const filename = this._resolveStateFilename('alarm');
+      return this._composeAssetPath(basePath, filename);
+    }
 
-    if (this._countdownActive)
-      return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.countdown);
+    if (this._countdownActive) {
+      const filename = this._resolveStateFilename('countdown');
+      return this._composeAssetPath(basePath, filename);
+    }
 
     const assistState = this._computeAssistState();
 
@@ -258,7 +295,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     }
 
     if (assistState && assistState !== 'idle') {
-      const filename = STATE_ASSET_MAP_TYPED[assistState];
+      const filename = this._resolveStateFilename(assistState);
       return this._composeAssetPath(basePath, filename);
     }
 
@@ -270,11 +307,13 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     if (assistState === 'idle') {
       if (this._config.hide_when_idle) return undefined;
-      return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.idle);
+      const filename = this._resolveStateFilename('idle');
+      return this._composeAssetPath(basePath, filename);
     }
 
     if (this._config.hide_when_idle) return undefined;
-    return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.idle);
+    const fallbackIdle = this._resolveStateFilename('idle');
+    return this._composeAssetPath(basePath, fallbackIdle);
   }
 
   private _determineMediaPlayerAsset(basePath: string): string | undefined {
@@ -300,8 +339,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const isMuted = !!stateObj.attributes?.is_volume_muted;
     if (!isMuted) return undefined;
 
-    // With the new asset set we only have a single mute GIF in the blue theme
-    const filename = STATE_ASSET_MAP_TYPED.mute;
+    const filename = this._resolveStateFilename('mute');
     return this._composeAssetPath(basePath, filename);
   }
 

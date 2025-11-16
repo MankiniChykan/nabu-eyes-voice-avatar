@@ -7,6 +7,8 @@ import {
   DEFAULT_PLAYING_VARIANT,
   EQUALIZER_VARIANTS,
   PLAYING_VARIANTS,
+  STATE_ASSET_MAP,
+  STATE_VARIANTS,
 } from '../const';
 import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 
@@ -186,6 +188,84 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           ></ha-switch>
         </div>
 
+        <!-- Per-state variants -->
+        <ha-select
+          .value=${cfg.state_idle_variant ?? STATE_ASSET_MAP.idle}
+          label="Idle state variant"
+          @selected=${this._handleStateVariant('state_idle_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.idle).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
+        <ha-select
+          .value=${cfg.state_listening_variant ?? STATE_ASSET_MAP.listening}
+          label="Listening state variant"
+          @selected=${this._handleStateVariant('state_listening_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.listening).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
+        <ha-select
+          .value=${cfg.state_processing_variant ?? STATE_ASSET_MAP.processing}
+          label="Processing state variant"
+          @selected=${this._handleStateVariant('state_processing_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.processing).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
+        <ha-select
+          .value=${cfg.state_responding_variant ?? STATE_ASSET_MAP.responding}
+          label="Responding state variant"
+          @selected=${this._handleStateVariant('state_responding_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.responding).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
+        <ha-select
+          .value=${cfg.state_alarm_variant ?? STATE_ASSET_MAP.alarm}
+          label="Alarm state variant"
+          @selected=${this._handleStateVariant('state_alarm_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.alarm).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
+        <ha-select
+          .value=${cfg.state_countdown_variant ?? STATE_ASSET_MAP.countdown}
+          label="Countdown state variant"
+          @selected=${this._handleStateVariant('state_countdown_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.countdown).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
+        <ha-select
+          .value=${cfg.state_mute_variant ?? STATE_ASSET_MAP.mute}
+          label="Mute state variant"
+          @selected=${this._handleStateVariant('state_mute_variant')}
+          @closed=${this._stop}
+        >
+          ${Object.entries(STATE_VARIANTS.mute).map(
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
+          )}
+        </ha-select>
+
         ${this._eventsInput('Countdown events', 'countdown_events', cfg.countdown_events)}
         ${this._eventsInput(
           'Countdown clear events',
@@ -289,6 +369,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     const v = (e.currentTarget as HaSelectElement)?.value;
     if (v && v in EQUALIZER_VARIANTS) this._update('media_player_equalizer', v as any);
   };
+
+  private _handleStateVariant =
+    (field: keyof NabuEyesDashboardCardConfig) =>
+    (e: Event) => {
+      const v = (e.currentTarget as HaSelectElement)?.value;
+      if (v) this._update(field, v as any);
+    };
 
   private _stop(e: Event) {
     e.stopPropagation();
