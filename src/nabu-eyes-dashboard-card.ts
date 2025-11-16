@@ -258,16 +258,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const asset = this._determineAsset();
     if (!asset) return html``;
 
+    const { src, glow } = asset;
+
     return html`
-      <ha-card>
-        <div class="avatar-container">
-          <img src="${asset}" alt="Nabu Eyes state" />
-        </div>
-      </ha-card>
+      <div class="avatar-container">
+        <img class=${glow ? 'glow' : ''} src="${src}" alt="Nabu Eyes state" />
+      </div>
     `;
   }
 
-  private _determineAsset(): string | undefined {
+  private _determineAsset(): { src: string; glow: boolean } | undefined {
     if (!this._config) return undefined;
 
     const basePath =
@@ -278,41 +278,42 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
     if (alarmActive) {
       const filename = this._resolveStateFilename('alarm');
-      return this._composeAssetPath(basePath, filename);
+      return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     if (this._countdownActive) {
       const filename = this._resolveStateFilename('countdown');
-      return this._composeAssetPath(basePath, filename);
+      return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     const assistState = this._computeAssistState();
 
     if (assistState === 'playing') {
-      const playingVariant = this._config.playing_variant ?? DEFAULT_PLAYING_VARIANT;
-      return this._composeAssetPath(basePath, playingVariant);
+      const filename = this._resolveStateFilename('playing');
+      return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     if (assistState && assistState !== 'idle') {
       const filename = this._resolveStateFilename(assistState);
-      return this._composeAssetPath(basePath, filename);
+      return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     const mediaPlayerAsset = this._determineMediaPlayerAsset(basePath);
-    if (mediaPlayerAsset) return mediaPlayerAsset;
+    if (mediaPlayerAsset) return { src: mediaPlayerAsset, glow: true };
 
     const muteAsset = this._determineMuteAsset(basePath);
-    if (muteAsset) return muteAsset;
+    if (muteAsset) return { src: muteAsset, glow: true };
 
+    // Idle or fallback idle: no CSS glow to avoid top/bottom lines
     if (assistState === 'idle') {
       if (this._config.hide_when_idle) return undefined;
       const filename = this._resolveStateFilename('idle');
-      return this._composeAssetPath(basePath, filename);
+      return { src: this._composeAssetPath(basePath, filename), glow: false };
     }
 
     if (this._config.hide_when_idle) return undefined;
     const fallbackIdle = this._resolveStateFilename('idle');
-    return this._composeAssetPath(basePath, fallbackIdle);
+    return { src: this._composeAssetPath(basePath, fallbackIdle), glow: false };
   }
 
   private _determineMediaPlayerAsset(basePath: string): string | undefined {
@@ -386,34 +387,24 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         display: block;
-        --ha-card-background: transparent;
-        --ha-card-box-shadow: none;
-      }
-
-      ha-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        box-sizing: border-box;
-        background: transparent !important;
-        box-shadow: none !important;
-        border-radius: 0;
-        border: none;
+        /* Tune glow colour/intensity via theme or card-mod */
+        --nabu-eyes-glow-color: rgba(0, 255, 255, 0.9);
       }
 
       .avatar-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
       }
 
-      .avatar-container img {
+      img {
+        display: block;
         max-width: 100%;
         height: auto;
-        filter: drop-shadow(0 0 10px var(--nabu-eyes-glow-color, rgba(0, 255, 255, 0.9)));
+      }
+
+      img.glow {
+        filter: drop-shadow(0 0 10px var(--nabu-eyes-glow-color));
       }
     `;
   }
