@@ -47,7 +47,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       const patch: Partial<NabuEyesDashboardCardConfig> = {};
       if (!this._config.assist_entities?.length) {
         const discovered = Object.keys(this.hass.states).filter((e) =>
-          e.startsWith('assist_satellite.')
+          e.startsWith('assist_satellite.'),
         );
         if (discovered.length) patch.assist_entities = discovered;
       }
@@ -67,11 +67,9 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
     // Build suggestion lists for fallbacks
     const assistOptions = Object.keys(this.hass.states).filter((e) =>
-      e.startsWith('assist_satellite.')
+      e.startsWith('assist_satellite.'),
     );
-    const mediaOptions = Object.keys(this.hass.states).filter((e) =>
-      e.startsWith('media_player.')
-    );
+    const mediaOptions = Object.keys(this.hass.states).filter((e) => e.startsWith('media_player.'));
 
     return html`
       <div class="form">
@@ -91,12 +89,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
                 label="Assist satellite entities"
                 allow-custom-entity
                 @value-changed=${(e: CustomEvent) =>
-                  this._update('assist_entities',
+                  this._update(
+                    'assist_entities',
                     Array.isArray(e.detail?.value)
                       ? (e.detail.value as string[])
                       : e.detail?.value
-                      ? [e.detail.value as string]
-                      : []
+                        ? [e.detail.value as string]
+                        : [],
                   )}
               ></ha-entities-picker>
             `
@@ -104,7 +103,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
               'Assist satellite entities (comma separated)',
               'assist_entities',
               cfg.assist_entities ?? [],
-              assistOptions
+              assistOptions,
             )}
 
         <!-- Equalizer media player -->
@@ -124,7 +123,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
               'Media player for equalizer',
               'media_player',
               cfg.media_player ?? '',
-              mediaOptions
+              mediaOptions,
             )}
 
         <!-- Mute source media player -->
@@ -144,7 +143,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
               'Media player for mute state',
               'mute_media_player',
               cfg.mute_media_player ?? cfg.media_player ?? '',
-              mediaOptions
+              mediaOptions,
             )}
 
         <ha-select
@@ -154,7 +153,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @closed=${this._stop}
         >
           ${Object.entries(PLAYING_VARIANTS).map(
-            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
           )}
         </ha-select>
 
@@ -165,7 +164,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @closed=${this._stop}
         >
           ${Object.entries(EQUALIZER_VARIANTS).map(
-            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`
+            ([k, label]) => html`<mwc-list-item .value=${k}>${label}</mwc-list-item>`,
           )}
         </ha-select>
 
@@ -179,11 +178,18 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
         <div class="switch-row">
           <span>Hide when idle</span>
-          <ha-switch .checked=${cfg.hide_when_idle ?? false} @change=${this._handleHide}></ha-switch>
+          <ha-switch
+            .checked=${cfg.hide_when_idle ?? false}
+            @change=${this._handleHide}
+          ></ha-switch>
         </div>
 
         ${this._eventsInput('Countdown events', 'countdown_events', cfg.countdown_events)}
-        ${this._eventsInput('Countdown clear events', 'countdown_clear_events', cfg.countdown_clear_events)}
+        ${this._eventsInput(
+          'Countdown clear events',
+          'countdown_clear_events',
+          cfg.countdown_clear_events,
+        )}
         ${this._eventsInput('Alarm events', 'alarm_events', cfg.alarm_events)}
         ${this._eventsInput('Alarm clear events', 'alarm_clear_events', cfg.alarm_clear_events)}
 
@@ -215,7 +221,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     label: string,
     field: keyof NabuEyesDashboardCardConfig,
     value: string,
-    options: string[]
+    options: string[],
   ) {
     const listId = `list-${field}`;
     return html`
@@ -226,9 +232,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         data-field=${field}
         list=${listId}
       ></ha-textfield>
-      <datalist id=${listId}>
-        ${options.map((o) => html`<option value=${o}></option>`)}
-      </datalist>
+      <datalist id=${listId}>${options.map((o) => html`<option value=${o}></option>`)}</datalist>
     `;
   }
 
@@ -236,7 +240,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     label: string,
     field: keyof NabuEyesDashboardCardConfig,
     values: string[],
-    options: string[]
+    options: string[],
   ) {
     const listId = `list-${field}`;
     return html`
@@ -248,9 +252,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         data-field=${field}
         list=${listId}
       ></ha-textfield>
-      <datalist id=${listId}>
-        ${options.map((o) => html`<option value=${o}></option>`)}
-      </datalist>
+      <datalist id=${listId}>${options.map((o) => html`<option value=${o}></option>`)}</datalist>
     `;
   }
 
@@ -290,7 +292,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     e.stopPropagation();
   }
 
-  private _update<K extends keyof NabuEyesDashboardCardConfig>(field: K, value: NabuEyesDashboardCardConfig[K]) {
+  private _update<K extends keyof NabuEyesDashboardCardConfig>(
+    field: K,
+    value: NabuEyesDashboardCardConfig[K],
+  ) {
     if (!this._config) return;
     const next = { ...this._config, [field]: value };
     this._config = next;

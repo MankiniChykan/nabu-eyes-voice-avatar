@@ -36,7 +36,8 @@ type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 
 type NabuEyesPseudoState = 'alarm' | 'countdown' | 'mute';
 type UnsubscribeFunc = () => void;
 
-const STATE_ASSET_MAP_TYPED: Record<NabuEyesAssistState | NabuEyesPseudoState, string> = STATE_ASSET_MAP;
+const STATE_ASSET_MAP_TYPED: Record<NabuEyesAssistState | NabuEyesPseudoState, string> =
+  STATE_ASSET_MAP;
 
 const ASSIST_STATE_PRIORITY: ReadonlyArray<NabuEyesAssistState> = [
   'responding',
@@ -93,10 +94,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     };
 
     normalizedConfig.assist_entities = this._normalizeStringArray(normalizedConfig.assist_entities);
-    normalizedConfig.countdown_events = this._normalizeStringArray(normalizedConfig.countdown_events);
-    normalizedConfig.countdown_clear_events = this._normalizeStringArray(normalizedConfig.countdown_clear_events);
+    normalizedConfig.countdown_events = this._normalizeStringArray(
+      normalizedConfig.countdown_events,
+    );
+    normalizedConfig.countdown_clear_events = this._normalizeStringArray(
+      normalizedConfig.countdown_clear_events,
+    );
     normalizedConfig.alarm_events = this._normalizeStringArray(normalizedConfig.alarm_events);
-    normalizedConfig.alarm_clear_events = this._normalizeStringArray(normalizedConfig.alarm_clear_events);
+    normalizedConfig.alarm_clear_events = this._normalizeStringArray(
+      normalizedConfig.alarm_clear_events,
+    );
     normalizedConfig.alarm_entities = this._normalizeStringArray(normalizedConfig.alarm_entities);
     normalizedConfig.alarm_active_states = this._normalizeStringArray(
       normalizedConfig.alarm_active_states?.length
@@ -105,9 +112,13 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     );
 
     const assetPath = normalizedConfig.asset_path?.trim();
-    normalizedConfig.asset_path = assetPath && assetPath.length > 0 ? assetPath : DEFAULT_ASSET_PATH;
+    normalizedConfig.asset_path =
+      assetPath && assetPath.length > 0 ? assetPath : DEFAULT_ASSET_PATH;
 
-    if (!normalizedConfig.playing_variant || !(normalizedConfig.playing_variant in PLAYING_VARIANTS)) {
+    if (
+      !normalizedConfig.playing_variant ||
+      !(normalizedConfig.playing_variant in PLAYING_VARIANTS)
+    ) {
       normalizedConfig.playing_variant = 'nabu_playing_dash.gif';
     }
     if (
@@ -122,7 +133,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   }
 
   private _normalizeStringArray(values?: readonly string[] | null): string[] {
-    return Array.from(new Set((values ?? []).map((v) => v?.trim()).filter((v): v is string => !!v?.length)));
+    return Array.from(
+      new Set((values ?? []).map((v) => v?.trim()).filter((v): v is string => !!v?.length)),
+    );
   }
 
   public disconnectedCallback(): void {
@@ -167,7 +180,11 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     }
   }
 
-  private _handleEvent(expectedType: string, eventType: string, eventData: Record<string, unknown>): void {
+  private _handleEvent(
+    expectedType: string,
+    eventType: string,
+    eventData: Record<string, unknown>,
+  ): void {
     if (!this._config || eventType !== expectedType) return;
 
     const {
@@ -182,7 +199,11 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     if (alarm_events.includes(eventType)) this._alarmActive = true;
     if (alarm_clear_events.includes(eventType)) this._alarmActive = false;
 
-    if (eventData && Object.prototype.hasOwnProperty.call(eventData, 'active') && typeof (eventData as any).active === 'boolean') {
+    if (
+      eventData &&
+      Object.prototype.hasOwnProperty.call(eventData, 'active') &&
+      typeof (eventData as any).active === 'boolean'
+    ) {
       const active = !!(eventData as any).active;
       if (countdown_events.includes(eventType) || countdown_clear_events.includes(eventType)) {
         this._countdownActive = active;
@@ -224,7 +245,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
     if (alarmActive) return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.alarm);
 
-    if (this._countdownActive) return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.countdown);
+    if (this._countdownActive)
+      return this._composeAssetPath(basePath, STATE_ASSET_MAP_TYPED.countdown);
 
     const assistState = this._computeAssistState();
 
