@@ -278,11 +278,13 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
     if (alarmActive) {
       const filename = this._resolveStateFilename('alarm');
+      this._setGlowColorForFilename(filename);
       return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     if (this._countdownActive) {
       const filename = this._resolveStateFilename('countdown');
+      this._setGlowColorForFilename(filename);
       return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
@@ -290,29 +292,39 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     if (assistState === 'playing') {
       const filename = this._resolveStateFilename('playing');
+      this._setGlowColorForFilename(filename);
       return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     if (assistState && assistState !== 'idle') {
       const filename = this._resolveStateFilename(assistState);
+      this._setGlowColorForFilename(filename);
       return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     const mediaPlayerAsset = this._determineMediaPlayerAsset(basePath);
-    if (mediaPlayerAsset) return { src: mediaPlayerAsset, glow: true };
+    if (mediaPlayerAsset) {
+      this._setGlowColorForFilename(mediaPlayerAsset);
+      return { src: mediaPlayerAsset, glow: true };
+    }
 
     const muteAsset = this._determineMuteAsset(basePath);
-    if (muteAsset) return { src: muteAsset, glow: true };
+    if (muteAsset) {
+      this._setGlowColorForFilename(muteAsset);
+      return { src: muteAsset, glow: true };
+    }
 
-    // Idle / fallback idle: NOW WITH GLOW
+    // Idle / fallback idle: always glow unless hidden
     if (assistState === 'idle') {
       if (this._config.hide_when_idle) return undefined;
       const filename = this._resolveStateFilename('idle');
+      this._setGlowColorForFilename(filename);
       return { src: this._composeAssetPath(basePath, filename), glow: true };
     }
 
     if (this._config.hide_when_idle) return undefined;
     const fallbackIdle = this._resolveStateFilename('idle');
+    this._setGlowColorForFilename(fallbackIdle);
     return { src: this._composeAssetPath(basePath, fallbackIdle), glow: true };
   }
 
@@ -383,13 +395,37 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return undefined;
   }
 
+  /** Pick a glow colour based on the asset filename suffix. */
+  private _setGlowColorForFilename(filename: string): void {
+    // Default: cyan-ish blue
+    let color = 'rgba(0, 200, 255, 0.35)';
+
+    const lower = filename.toLowerCase();
+
+    if (lower.includes('light')) {
+      // Bright cyan
+      color = 'rgba(0, 255, 255, 0.32)';
+    } else if (lower.includes('purple')) {
+      // Pink/purple
+      color = 'rgba(230, 80, 255, 0.32)';
+    } else if (lower.includes('sepia') || lower.includes('yellow') || lower.includes('gold')) {
+      // Warm yellow/gold
+      color = 'rgba(255, 220, 120, 0.30)';
+    } else if (lower.includes('blue')) {
+      // Deep blue
+      color = 'rgba(30, 180, 255, 0.35)';
+    }
+
+    this.style.setProperty('--nabu-eyes-glow-color', color);
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
         display: block;
-        /* Glow tunables */
-        --nabu-eyes-glow-color: rgba(0, 255, 255, 0.9);
-        --nabu-eyes-glow-radius: 30px;
+        /* Tunables – can be overridden from theme */
+        --nabu-eyes-glow-color: rgba(0, 200, 255, 0.35);
+        --nabu-eyes-glow-radius: 18px;
       }
 
       .avatar-container {
@@ -397,6 +433,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         align-items: center;
         justify-content: center;
         padding: 24px 0;
+        background: transparent;
       }
 
       img {
