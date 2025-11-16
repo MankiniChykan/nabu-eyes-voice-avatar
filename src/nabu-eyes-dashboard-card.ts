@@ -9,6 +9,8 @@ import type { HassEvent } from 'home-assistant-js-websocket';
 import {
   DEFAULT_ALARM_ACTIVE_STATES,
   DEFAULT_ASSET_PATH,
+  DEFAULT_EQUALIZER_VARIANT,
+  DEFAULT_PLAYING_VARIANT,
   EQUALIZER_VARIANTS,
   PLAYING_VARIANTS,
   STATE_ASSET_MAP,
@@ -79,9 +81,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     if (!config) throw new Error('Invalid configuration.');
 
     const normalizedConfig: NabuEyesDashboardCardConfig = {
-      hide_when_idle: false, // default now false
-      playing_variant: 'nabu_playing_dash.gif',
-      media_player_equalizer: 'nabu_equalizer_dash.gif',
+      hide_when_idle: false,
+      playing_variant: DEFAULT_PLAYING_VARIANT,
+      media_player_equalizer: DEFAULT_EQUALIZER_VARIANT,
       countdown_events: [],
       countdown_clear_events: [],
       alarm_events: [],
@@ -119,13 +121,13 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       !normalizedConfig.playing_variant ||
       !(normalizedConfig.playing_variant in PLAYING_VARIANTS)
     ) {
-      normalizedConfig.playing_variant = 'nabu_playing_dash.gif';
+      normalizedConfig.playing_variant = DEFAULT_PLAYING_VARIANT;
     }
     if (
       normalizedConfig.media_player_equalizer &&
       !(normalizedConfig.media_player_equalizer in EQUALIZER_VARIANTS)
     ) {
-      normalizedConfig.media_player_equalizer = 'nabu_equalizer_dash.gif';
+      normalizedConfig.media_player_equalizer = DEFAULT_EQUALIZER_VARIANT;
     }
 
     this._config = normalizedConfig;
@@ -251,7 +253,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const assistState = this._computeAssistState();
 
     if (assistState === 'playing') {
-      const playingVariant = this._config.playing_variant ?? 'nabu_playing_dash.gif';
+      const playingVariant = this._config.playing_variant ?? DEFAULT_PLAYING_VARIANT;
       return this._composeAssetPath(basePath, playingVariant);
     }
 
@@ -281,8 +283,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     if (!mediaState) return undefined;
 
     if (mediaState.state === 'playing') {
-      const variant = this._config.media_player_equalizer ?? 'nabu_equalizer_dash.gif';
-      const filename = EQUALIZER_VARIANTS[variant] ? variant : 'nabu_equalizer_dash.gif';
+      const variant = this._config.media_player_equalizer ?? DEFAULT_EQUALIZER_VARIANT;
+      const filename = EQUALIZER_VARIANTS[variant] ? variant : DEFAULT_EQUALIZER_VARIANT;
       return this._composeAssetPath(basePath, filename);
     }
     return undefined;
@@ -298,7 +300,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const isMuted = !!stateObj.attributes?.is_volume_muted;
     if (!isMuted) return undefined;
 
-    const filename = stateObj.state === 'off' ? 'nabu_mute_dash.gif' : 'nabu_mute_red_dash.gif';
+    // With the new asset set we only have a single mute GIF in the blue theme
+    const filename = STATE_ASSET_MAP_TYPED.mute;
     return this._composeAssetPath(basePath, filename);
   }
 
