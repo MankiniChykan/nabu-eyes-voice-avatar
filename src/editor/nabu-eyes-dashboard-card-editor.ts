@@ -3,6 +3,8 @@ import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helper
 import {
   DEFAULT_ALARM_ACTIVE_STATES,
   DEFAULT_ASSET_PATH,
+  DEFAULT_EQUALIZER_VARIANT,
+  DEFAULT_PLAYING_VARIANT,
   EQUALIZER_VARIANTS,
   PLAYING_VARIANTS,
 } from '../const';
@@ -147,7 +149,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
             )}
 
         <ha-select
-          .value=${cfg.playing_variant ?? 'nabu_playing_dash.gif'}
+          .value=${cfg.playing_variant ?? DEFAULT_PLAYING_VARIANT}
           label="Assist playing animation"
           @selected=${this._handlePlaying}
           @closed=${this._stop}
@@ -158,7 +160,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         </ha-select>
 
         <ha-select
-          .value=${cfg.media_player_equalizer ?? 'nabu_equalizer_dash.gif'}
+          .value=${cfg.media_player_equalizer ?? DEFAULT_EQUALIZER_VARIANT}
           label="Media player equalizer"
           @selected=${this._handleEqualizer}
           @closed=${this._stop}
