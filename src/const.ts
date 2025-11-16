@@ -1,12 +1,9 @@
-export const DEFAULT_ASSET_PATH =
-  '/hacsfiles/nabu-eyes-voice-avatar/nabu_eyes_dashboard';
+export const DEFAULT_ASSET_PATH = '/hacsfiles/nabu-eyes-voice-avatar/nabu_eyes_dashboard';
 
 // Default palette/variants to use in the card logic
-export const DEFAULT_PLAYING_VARIANT =
-  'nabu_eyes_dash_blue/nabu_playing_dash_blue.gif';
+export const DEFAULT_PLAYING_VARIANT = 'nabu_eyes_dash_blue/nabu_playing_dash_blue.gif';
 
-export const DEFAULT_EQUALIZER_VARIANT =
-  'equalizer_dash/1px_equalizer_dash.gif';
+export const DEFAULT_EQUALIZER_VARIANT = 'equalizer_dash/1px_equalizer_dash.gif';
 
 export const PLAYING_VARIANTS = {
   'nabu_eyes_dash_blue/nabu_playing_dash_blue.gif': 'Nabu Playing Blue (default)',
