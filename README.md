@@ -8,6 +8,10 @@ dashboard GIFs depending on the state of one or more Assist Satellite entities. 
 supports media-player driven equalizer animations, mute overlays, and reacting to timer or alarm
 events published on the Home Assistant event bus.
 
+![nabu_idle_dash_blue](https://github.com/user-attachments/assets/911539ad-0ddc-4c87-87ba-889d9bfbb29b)
+
+![nabu_responding_dash_blue](https://github.com/user-attachments/assets/15889ba7-5f24-4425-8fe1-7bb11df8455f)
+
 ### Features
 
 - Monitor multiple `assist_satellite` entities and switch the animation through the states `idle`,
