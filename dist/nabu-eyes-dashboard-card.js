@@ -214,33 +214,41 @@ const A=globalThis,w=A.trustedTypes,E=w?w.createPolicy("lit-html",{createHTML:t=
       }
     `}}St.properties={hass:{attribute:!1},_config:{state:!0}},customElements.get("nabu-eyes-dashboard-card-editor")||customElements.define("nabu-eyes-dashboard-card-editor",St);const xt=vt,Pt=["responding","playing","processing","listening","idle"];class Ct extends nt{constructor(){super(...arguments),this._countdownActive=!1,this._alarmActive=!1,this._eventUnsubscribes=[]}static async getConfigElement(){return document.createElement("nabu-eyes-dashboard-card-editor")}static getStubConfig(){return{type:"custom:nabu-eyes-dashboard-card",name:"Nabu Eyes",assist_entities:[],asset_path:ot}}setConfig(t){if(!t)throw new Error("Invalid configuration.");const e={hide_when_idle:!1,playing_variant:lt,media_player_equalizer:ht,countdown_events:[],countdown_clear_events:[],alarm_events:[],alarm_clear_events:[],alarm_active_states:bt,...t,assist_entities:Array.isArray(t.assist_entities)?[...t.assist_entities??[]]:[]};e.assist_entities=this._normalizeStringArray(e.assist_entities),e.countdown_events=this._normalizeStringArray(e.countdown_events),e.countdown_clear_events=this._normalizeStringArray(e.countdown_clear_events),e.alarm_events=this._normalizeStringArray(e.alarm_events),e.alarm_clear_events=this._normalizeStringArray(e.alarm_clear_events),e.alarm_entities=this._normalizeStringArray(e.alarm_entities),e.alarm_active_states=this._normalizeStringArray(e.alarm_active_states?.length?e.alarm_active_states:[...bt]);const s=e.asset_path?.trim();e.asset_path=s&&s.length>0?s:ot,e.playing_variant&&e.playing_variant in ct||(e.playing_variant=lt),e.media_player_equalizer&&!(e.media_player_equalizer in _t)&&(e.media_player_equalizer=ht),this._config=e,this._subscribeToEvents()}_normalizeStringArray(t){return Array.from(new Set((t??[]).map(t=>t?.trim()).filter(t=>!!t?.length)))}disconnectedCallback(){super.disconnectedCallback(),this._unsubscribeFromEvents()}updated(t){t.has("hass")&&this._subscribeToEvents()}async _subscribeToEvents(){if(this._unsubscribeFromEvents(),!this.hass?.connection||!this._config)return;const t=new Set([...this._config.countdown_events??[],...this._config.countdown_clear_events??[],...this._config.alarm_events??[],...this._config.alarm_clear_events??[]]);if(0!==t.size)for(const e of t)if(e)try{const t=await this.hass.connection.subscribeEvents(t=>{this._handleEvent(e,t.event_type,t.data)},e);this._eventUnsubscribes.push(t)}catch(t){console.warn(`nabu-eyes-dashboard-card: failed to subscribe to event ${e}`,t)}}_unsubscribeFromEvents(){for(;this._eventUnsubscribes.length;){const t=this._eventUnsubscribes.pop();t&&t()}}_handleEvent(t,e,s){if(!this._config||e!==t)return;const{countdown_events:i=[],countdown_clear_events:a=[],alarm_events:n=[],alarm_clear_events:r=[]}=this._config;if(i.includes(e)&&(this._countdownActive=!0),a.includes(e)&&(this._countdownActive=!1),n.includes(e)&&(this._alarmActive=!0),r.includes(e)&&(this._alarmActive=!1),s&&Object.prototype.hasOwnProperty.call(s,"active")&&"boolean"==typeof s.active){const t=!!s.active;(i.includes(e)||a.includes(e))&&(this._countdownActive=t),(n.includes(e)||r.includes(e))&&(this._alarmActive=t)}}getCardSize(){return 3}_resolveStateFilename(t){if(!this._config)return xt[t];switch(t){case"idle":return this._config.state_idle_variant||xt.idle;case"listening":return this._config.state_listening_variant||xt.listening;case"processing":return this._config.state_processing_variant||xt.processing;case"responding":return this._config.state_responding_variant||xt.responding;case"playing":return this._config.playing_variant||xt.playing;case"alarm":return this._config.state_alarm_variant||xt.alarm;case"countdown":return this._config.state_countdown_variant||xt.countdown;case"mute":return this._config.state_mute_variant||xt.mute;default:return xt[t]}}render(){if(!this._config)return B``;const t=this._determineAsset();return t?B`
       <ha-card>
-        ${this._config.name?B`<div class="card-header">${this._config.name}</div>`:null}
         <div class="avatar-container">
           <img src="${t}" alt="Nabu Eyes state" />
         </div>
       </ha-card>
     `:B``}_determineAsset(){if(!this._config)return;const t=this._config.asset_path&&this._config.asset_path.trim().length>0?this._config.asset_path:ot;if(this._alarmActive||this._isAlarmEntityActive()){const e=this._resolveStateFilename("alarm");return this._composeAssetPath(t,e)}if(this._countdownActive){const e=this._resolveStateFilename("countdown");return this._composeAssetPath(t,e)}const e=this._computeAssistState();if("playing"===e){const e=this._config.playing_variant??lt;return this._composeAssetPath(t,e)}if(e&&"idle"!==e){const s=this._resolveStateFilename(e);return this._composeAssetPath(t,s)}const s=this._determineMediaPlayerAsset(t);if(s)return s;const i=this._determineMuteAsset(t);if(i)return i;if("idle"===e){if(this._config.hide_when_idle)return;const e=this._resolveStateFilename("idle");return this._composeAssetPath(t,e)}if(this._config.hide_when_idle)return;const a=this._resolveStateFilename("idle");return this._composeAssetPath(t,a)}_determineMediaPlayerAsset(t){if(!this._config?.media_player||!this.hass)return;const e=this.hass.states[this._config.media_player];if(e&&"playing"===e.state){const e=this._config.media_player_equalizer??ht,s=_t[e]?e:ht;return this._composeAssetPath(t,s)}}_determineMuteAsset(t){const e=this._config?.mute_media_player??this._config?.media_player;if(!e||!this.hass)return;const s=this.hass.states[e];if(!s)return;if(!!!s.attributes?.is_volume_muted)return;const i=this._resolveStateFilename("mute");return this._composeAssetPath(t,i)}_isAlarmEntityActive(){if(!this._config?.alarm_entities?.length||!this.hass)return!1;const t=this._config.alarm_active_states??bt;return this._config.alarm_entities.some(e=>{const s=this.hass.states[e];return!!s&&t.includes(s.state)})}_composeAssetPath(t,e){return t.endsWith("/")?`${t}${e}`:`${t}/${e}`}_computeAssistState(){if(!this.hass)return;const t=this._config?.assist_entities??[],e=t.length>0?t:Object.keys(this.hass.states).filter(t=>t.startsWith("assist_satellite."));if(0===e.length)return;const s=e.map(t=>this.hass.states[t]?.state).filter(t=>"string"==typeof t);for(const t of Pt)if(s.includes(t))return t}static get styles(){return n`
+      :host {
+        display: block;
+        --ha-card-background: transparent;
+        --ha-card-box-shadow: none;
+      }
+
       ha-card {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        padding: 12px;
+        padding: 0;
         box-sizing: border-box;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0;
+        border: none;
       }
-      .card-header {
-        font-size: 20px;
-        font-weight: 500;
-        margin-bottom: 8px;
-      }
+
       .avatar-container {
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
       }
-      img {
+
+      .avatar-container img {
         max-width: 100%;
         height: auto;
+        filter: drop-shadow(0 0 10px var(--nabu-eyes-glow-color, rgba(0, 255, 255, 0.9)));
       }
     `}}Ct.properties={hass:{attribute:!1},_config:{state:!0},_countdownActive:{state:!0},_alarmActive:{state:!0}};const zt="nabu-eyes-dashboard-card";if(customElements.get(zt)||customElements.define(zt,Ct),"undefined"!=typeof window){window.customCards=window.customCards??[];window.customCards.some(t=>t.type===zt)||window.customCards.push({type:zt,name:"Nabu Eyes Dashboard",description:"Animated Assist avatar with media and alarm indicators.",preview:!0})}export{Ct as NabuEyesDashboardCard};
 //# sourceMappingURL=nabu-eyes-dashboard-card.js.map
