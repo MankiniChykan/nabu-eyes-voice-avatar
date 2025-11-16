@@ -260,7 +260,6 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     return html`
       <ha-card>
-        ${this._config.name ? html`<div class="card-header">${this._config.name}</div>` : null}
         <div class="avatar-container">
           <img src="${asset}" alt="Nabu Eyes state" />
         </div>
@@ -385,27 +384,38 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
   static get styles(): CSSResultGroup {
     return css`
+      :host {
+        display: block;
+        --ha-card-background: transparent;
+        --ha-card-box-shadow: none;
+      }
+
       ha-card {
         display: flex;
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
         justify-content: center;
-        padding: 12px;
+        padding: 0;
         box-sizing: border-box;
+        background: transparent !important;
+        box-shadow: none !important;
+        border-radius: 0;
+        border: none;
       }
-      .card-header {
-        font-size: 20px;
-        font-weight: 500;
-        margin-bottom: 8px;
-      }
+
       .avatar-container {
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
       }
-      img {
+
+      .avatar-container img {
         max-width: 100%;
         height: auto;
+        filter: drop-shadow(
+          0 0 10px var(--nabu-eyes-glow-color, rgba(0, 255, 255, 0.9))
+        );
       }
     `;
   }
