@@ -473,32 +473,32 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         height: auto;
       }
 
-      /* Variant glow colours – all use shared radius, each with its own colour var */
+      /* Variant glow colours all use shared radius, each with its own colour var */
       .glow-blue {
         filter: drop-shadow(
           0 0 var(--nabu-eyes-glow-radius, 30px)
-          var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.35))
+            var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.35))
         );
       }
 
       .glow-light {
         filter: drop-shadow(
           0 0 var(--nabu-eyes-glow-radius, 30px)
-          var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.4))
+            var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.4))
         );
       }
 
       .glow-purple {
         filter: drop-shadow(
           0 0 var(--nabu-eyes-glow-radius, 30px)
-          var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.38))
+            var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.38))
         );
       }
 
       .glow-sepia {
         filter: drop-shadow(
           0 0 var(--nabu-eyes-glow-radius, 30px)
-          var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.35))
+            var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.35))
         );
       }
     `;
