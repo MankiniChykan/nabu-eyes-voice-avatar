@@ -322,11 +322,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     `;
   }
 
-  private _eventsInput(
-    label: string,
-    field: keyof NabuEyesDashboardCardConfig,
-    values?: string[],
-  ) {
+  private _eventsInput(label: string, field: keyof NabuEyesDashboardCardConfig, values?: string[]) {
     return html`
       <ha-textfield
         label=${label}
