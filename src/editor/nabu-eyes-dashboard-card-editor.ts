@@ -18,6 +18,11 @@ type HaSwitchElement = HTMLElement & { checked?: boolean };
 const hasEntitiesPicker = () => !!customElements.get('ha-entities-picker');
 const hasEntityPicker = () => !!customElements.get('ha-entity-picker');
 
+const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.35)';
+const DEFAULT_GLOW_LIGHT = 'rgba(0, 255, 255, 0.4)';
+const DEFAULT_GLOW_PURPLE = 'rgba(255, 0, 255, 0.38)';
+const DEFAULT_GLOW_SEPIA = 'rgba(255, 210, 0, 0.35)';
+
 export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceCardEditor {
   public hass!: HomeAssistant;
   private _config?: NabuEyesDashboardCardConfig;
@@ -43,6 +48,12 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       // Ensure numeric controls have stable defaults in the editor
       glow_radius: config.glow_radius ?? 30,
       avatar_padding_vertical: config.avatar_padding_vertical ?? 48,
+
+      // Per-variant glow colours (rgba strings)
+      glow_color_blue: config.glow_color_blue ?? DEFAULT_GLOW_BLUE,
+      glow_color_light: config.glow_color_light ?? DEFAULT_GLOW_LIGHT,
+      glow_color_purple: config.glow_color_purple ?? DEFAULT_GLOW_PURPLE,
+      glow_color_sepia: config.glow_color_sepia ?? DEFAULT_GLOW_SEPIA,
     };
   }
 
@@ -78,6 +89,11 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       e.startsWith('assist_satellite.'),
     );
     const mediaOptions = Object.keys(this.hass.states).filter((e) => e.startsWith('media_player.'));
+
+    const blue = this._rgbaToHexAlpha(cfg.glow_color_blue, DEFAULT_GLOW_BLUE);
+    const light = this._rgbaToHexAlpha(cfg.glow_color_light, DEFAULT_GLOW_LIGHT);
+    const purple = this._rgbaToHexAlpha(cfg.glow_color_purple, DEFAULT_GLOW_PURPLE);
+    const sepia = this._rgbaToHexAlpha(cfg.glow_color_sepia, DEFAULT_GLOW_SEPIA);
 
     return html`
       <div class="form">
@@ -309,6 +325,71 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @input=${this._handleNumber}
           data-field="avatar_padding_vertical"
         ></ha-textfield>
+
+        <!-- Per-variant glow colours -->
+        <h3 class="section-heading">Glow colours (RGBA)</h3>
+
+        ${this._glowRow('Blue glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
+        ${this._glowRow('Light glow', 'glow_color_light', light.hex, light.alpha, DEFAULT_GLOW_LIGHT)}
+        ${this._glowRow(
+          'Purple glow',
+          'glow_color_purple',
+          purple.hex,
+          purple.alpha,
+          DEFAULT_GLOW_PURPLE,
+        )}
+        ${this._glowRow(
+          'Sepia glow',
+          'glow_color_sepia',
+          sepia.hex,
+          sepia.alpha,
+          DEFAULT_GLOW_SEPIA,
+        )}
+      </div>
+    `;
+  }
+
+  private _glowRow(
+    label: string,
+    field: 'glow_color_blue' | 'glow_color_light' | 'glow_color_purple' | 'glow_color_sepia',
+    hex: string,
+    alpha: number,
+    fallback: string,
+  ): TemplateResult {
+    return html`
+      <div class="color-row">
+        <div class="color-label">${label}</div>
+        <input
+          type="color"
+          class="color-input"
+          .value=${hex}
+          @input=${(e: Event) => {
+            const target = e.currentTarget as HTMLInputElement;
+            const current = (this._config && (this._config as any)[field]) || fallback;
+            const parsed = this._rgbaToHexAlpha(current as string, fallback);
+            const rgba = this._rgbaFromHexAlpha(target.value, parsed.alpha);
+            this._update(field, rgba as any);
+          }}
+        />
+        <ha-textfield
+          class="alpha-input"
+          label="α"
+          type="number"
+          min="0"
+          max="1"
+          step="0.05"
+          .value=${String(alpha)}
+          @input=${(e: Event) => {
+            const t = e.currentTarget as HTMLInputElement;
+            const val = Number(t.value);
+            if (Number.isNaN(val)) return;
+            const clamped = Math.min(1, Math.max(0, val));
+            const current = (this._config && (this._config as any)[field]) || fallback;
+            const parsed = this._rgbaToHexAlpha(current as string, fallback);
+            const rgba = this._rgbaFromHexAlpha(parsed.hex, clamped);
+            this._update(field, rgba as any);
+          }}
+        ></ha-textfield>
       </div>
     `;
   }
@@ -363,6 +444,64 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       ></ha-textfield>
       <datalist id=${listId}>${options.map((o) => html`<option value=${o}></option>`)}</datalist>
     `;
+  }
+
+  // ---- Helpers for RGBA <-> hex+alpha ----
+  private _rgbaToHexAlpha(value: string, fallback: string): { hex: string; alpha: number } {
+    const src = (value || fallback).trim();
+    const rgbaMatch = src.match(
+      /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([0-9.]+))?\s*\)$/i,
+    );
+    if (rgbaMatch) {
+      const r = Number(rgbaMatch[1]);
+      const g = Number(rgbaMatch[2]);
+      const b = Number(rgbaMatch[3]);
+      const a = rgbaMatch[4] !== undefined ? Number(rgbaMatch[4]) : 1;
+      const hex =
+        '#' +
+        [r, g, b]
+          .map((n) => {
+            const clamped = Math.min(255, Math.max(0, Math.round(n)));
+            const s = clamped.toString(16);
+            return s.length === 1 ? `0${s}` : s;
+          })
+          .join('');
+      return { hex, alpha: Math.min(1, Math.max(0, isNaN(a) ? 1 : a)) };
+    }
+
+    if (src.startsWith('#')) {
+      let hex = src;
+      if (hex.length === 4) {
+        const r = hex[1];
+        const g = hex[2];
+        const b = hex[3];
+        hex = `#${r}${r}${g}${g}${b}${b}`;
+      }
+      if (hex.length === 7) {
+        return { hex, alpha: 1 };
+      }
+    }
+
+    // Fallback to default
+    return this._rgbaToHexAlpha(fallback, fallback);
+  }
+
+  private _rgbaFromHexAlpha(hex: string, alpha: number): string {
+    let h = hex.trim();
+    if (!h.startsWith('#')) h = `#${h}`;
+    if (h.length === 4) {
+      const r = h[1];
+      const g = h[2];
+      const b = h[3];
+      h = `#${r}${r}${g}${g}${b}${b}`;
+    }
+    if (h.length !== 7) return DEFAULT_GLOW_BLUE;
+
+    const r = parseInt(h.slice(1, 3), 16);
+    const g = parseInt(h.slice(3, 5), 16);
+    const b = parseInt(h.slice(5, 7), 16);
+    const a = Math.min(1, Math.max(0, alpha));
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
   }
 
   // ---- Handlers ----
@@ -445,6 +584,29 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         font-size: 14px;
         font-weight: 500;
         opacity: 0.8;
+      }
+
+      .color-row {
+        display: grid;
+        grid-template-columns: 2fr auto 80px;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .color-label {
+        font-size: 13px;
+      }
+
+      .color-input {
+        width: 40px;
+        height: 24px;
+        padding: 0;
+        border: none;
+        background: transparent;
+      }
+
+      .alpha-input {
+        --mdc-text-field-outlined-hover-border-color: transparent;
       }
     `;
   }
