@@ -39,6 +39,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       alarm_entities: [...(config.alarm_entities ?? [])],
       alarm_active_states: [...(config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES)],
       hide_when_idle: config.hide_when_idle ?? false,
+
+      // Ensure the sliders have stable defaults in the editor
+      glow_radius: config.glow_radius ?? 30,
+      avatar_padding_vertical: config.avatar_padding_vertical ?? 48,
     };
   }
 
@@ -74,9 +78,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       e.startsWith('assist_satellite.'),
     );
     const mediaOptions = Object.keys(this.hass.states).filter((e) => e.startsWith('media_player.'));
-
-    const glowRadius = cfg.glow_radius ?? 30;
-    const avatarPadding = cfg.avatar_padding_vertical ?? 48;
 
     return html`
       <div class="form">
@@ -286,75 +287,46 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           data-field="alarm_active_states"
         ></ha-textfield>
 
-        <!-- Glow & layout controls -->
-        <div class="section-header">Glow & layout</div>
+        <!-- Glow & layout sliders -->
+        <h3 class="section-heading">Glow & layout</h3>
 
         <div class="slider-row">
-          <div class="slider-label">
-            <span>Glow radius</span>
-            <span class="slider-value">${glowRadius} px</span>
+          <div class="label">Glow radius</div>
+          <div class="slider">
+            <ha-slider
+              min="0"
+              max="200"
+              step="1"
+              .value=${cfg.glow_radius ?? 30}
+              @value-changed=${(e: CustomEvent) => this._handleSlider('glow_radius', e)}
+            ></ha-slider>
           </div>
-          <ha-slider
-            min="0"
-            max="200"
-            step="1"
-            .value=${glowRadius}
-            @value-changed=${this._handleNumber}
-            data-field="glow_radius"
-          ></ha-slider>
+          <div class="value">${cfg.glow_radius ?? 30} px</div>
         </div>
 
         <div class="slider-row">
-          <div class="slider-label">
-            <span>Vertical padding</span>
-            <span class="slider-value">${avatarPadding} px</span>
+          <div class="label">Vertical padding</div>
+          <div class="slider">
+            <ha-slider
+              min="0"
+              max="200"
+              step="1"
+              .value=${cfg.avatar_padding_vertical ?? 48}
+              @value-changed=${(e: CustomEvent) =>
+                this._handleSlider('avatar_padding_vertical', e)}
+            ></ha-slider>
           </div>
-          <ha-slider
-            min="0"
-            max="200"
-            step="4"
-            .value=${avatarPadding}
-            @value-changed=${this._handleNumber}
-            data-field="avatar_padding_vertical"
-          ></ha-slider>
+          <div class="value">${cfg.avatar_padding_vertical ?? 48} px</div>
         </div>
-
-        <ha-textfield
-          label="Glow colour (blue variant)"
-          helper="CSS color (e.g. rgba(0, 21, 255, 0.35))"
-          .value=${cfg.glow_color_blue ?? 'rgba(0, 21, 255, 0.35)'}
-          @input=${this._handleText}
-          data-field="glow_color_blue"
-        ></ha-textfield>
-
-        <ha-textfield
-          label="Glow colour (light/cyan variant)"
-          helper="CSS color (e.g. rgba(0, 255, 255, 0.4))"
-          .value=${cfg.glow_color_light ?? 'rgba(0, 255, 255, 0.4)'}
-          @input=${this._handleText}
-          data-field="glow_color_light"
-        ></ha-textfield>
-
-        <ha-textfield
-          label="Glow colour (purple variant)"
-          helper="CSS color (e.g. rgba(255, 0, 255, 0.38))"
-          .value=${cfg.glow_color_purple ?? 'rgba(255, 0, 255, 0.38)'}
-          @input=${this._handleText}
-          data-field="glow_color_purple"
-        ></ha-textfield>
-
-        <ha-textfield
-          label="Glow colour (sepia/gold variant)"
-          helper="CSS color (e.g. rgba(255, 210, 0, 0.35))"
-          .value=${cfg.glow_color_sepia ?? 'rgba(255, 210, 0, 0.35)'}
-          @input=${this._handleText}
-          data-field="glow_color_sepia"
-        ></ha-textfield>
       </div>
     `;
   }
 
-  private _eventsInput(label: string, field: keyof NabuEyesDashboardCardConfig, values?: string[]) {
+  private _eventsInput(
+    label: string,
+    field: keyof NabuEyesDashboardCardConfig,
+    values?: string[],
+  ) {
     return html`
       <ha-textfield
         label=${label}
@@ -438,19 +410,23 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     if (v && v in EQUALIZER_VARIANTS) this._update('media_player_equalizer', v as any);
   };
 
-  private _handleStateVariant = (field: keyof NabuEyesDashboardCardConfig) => (e: Event) => {
-    const v = (e.currentTarget as HaSelectElement)?.value;
-    if (v) this._update(field, v as any);
-  };
+  private _handleStateVariant =
+    (field: keyof NabuEyesDashboardCardConfig) =>
+    (e: Event): void => {
+      const v = (e.currentTarget as HaSelectElement)?.value;
+      if (v) this._update(field, v as any);
+    };
 
-  private _handleNumber = (e: CustomEvent) => {
-    const t = e.currentTarget as HTMLElement & { dataset?: { field?: string } };
-    if (!t?.dataset?.field || !this._config) return;
+  private _handleSlider(
+    field: 'glow_radius' | 'avatar_padding_vertical',
+    e: CustomEvent<{ value: number }>,
+  ): void {
+    if (!this._config) return;
     const raw = (e.detail as any)?.value;
-    const num = typeof raw === 'number' ? raw : Number(raw);
+    const num = Number(raw);
     if (Number.isNaN(num)) return;
-    this._update(t.dataset.field as keyof NabuEyesDashboardCardConfig, num as any);
-  };
+    this._update(field, num as any);
+  }
 
   private _stop(e: Event) {
     e.stopPropagation();
@@ -473,30 +449,36 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         flex-direction: column;
         gap: 16px;
       }
+
       .switch-row {
         display: flex;
         align-items: center;
         justify-content: space-between;
       }
-      .section-header {
-        margin-top: 8px;
-        font-weight: 600;
+
+      .section-heading {
+        margin-top: 16px;
         font-size: 14px;
+        font-weight: 500;
         opacity: 0.8;
       }
+
       .slider-row {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+        display: grid;
+        grid-template-columns: 1fr 3fr auto;
+        align-items: center;
+        gap: 8px;
       }
-      .slider-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 12px;
-        opacity: 0.9;
+
+      .label {
+        font-size: 13px;
       }
-      .slider-value {
-        font-variant-numeric: tabular-nums;
+
+      .value {
+        font-size: 13px;
+        text-align: right;
+        opacity: 0.8;
+        min-width: 48px;
       }
     `;
   }
