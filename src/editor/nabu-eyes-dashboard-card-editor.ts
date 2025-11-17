@@ -40,7 +40,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       alarm_active_states: [...(config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES)],
       hide_when_idle: config.hide_when_idle ?? false,
 
-      // Ensure the sliders have stable defaults in the editor
+      // Ensure numeric controls have stable defaults in the editor
       glow_radius: config.glow_radius ?? 30,
       avatar_padding_vertical: config.avatar_padding_vertical ?? 48,
     };
@@ -287,36 +287,28 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           data-field="alarm_active_states"
         ></ha-textfield>
 
-        <!-- Glow & layout sliders -->
+        <!-- Glow & layout numeric controls -->
         <h3 class="section-heading">Glow & layout</h3>
 
-        <div class="slider-row">
-          <div class="label">Glow radius</div>
-          <div class="slider">
-            <ha-slider
-              min="0"
-              max="200"
-              step="1"
-              .value=${cfg.glow_radius ?? 30}
-              @value-changed=${(e: CustomEvent) => this._handleSlider('glow_radius', e)}
-            ></ha-slider>
-          </div>
-          <div class="value">${cfg.glow_radius ?? 30} px</div>
-        </div>
+        <ha-textfield
+          label="Glow radius (px)"
+          type="number"
+          min="0"
+          max="200"
+          .value=${String(cfg.glow_radius ?? 30)}
+          @input=${this._handleNumber}
+          data-field="glow_radius"
+        ></ha-textfield>
 
-        <div class="slider-row">
-          <div class="label">Vertical padding</div>
-          <div class="slider">
-            <ha-slider
-              min="0"
-              max="200"
-              step="1"
-              .value=${cfg.avatar_padding_vertical ?? 48}
-              @value-changed=${(e: CustomEvent) => this._handleSlider('avatar_padding_vertical', e)}
-            ></ha-slider>
-          </div>
-          <div class="value">${cfg.avatar_padding_vertical ?? 48} px</div>
-        </div>
+        <ha-textfield
+          label="Vertical padding (px)"
+          type="number"
+          min="0"
+          max="200"
+          .value=${String(cfg.avatar_padding_vertical ?? 48)}
+          @input=${this._handleNumber}
+          data-field="avatar_padding_vertical"
+        ></ha-textfield>
       </div>
     `;
   }
@@ -380,6 +372,14 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     this._update(t.dataset.field as keyof NabuEyesDashboardCardConfig, t.value || undefined);
   };
 
+  private _handleNumber = (e: Event) => {
+    const t = e.currentTarget as HTMLInputElement & { dataset: { field?: string } };
+    if (!t?.dataset?.field || !this._config) return;
+    const num = Number(t.value);
+    if (Number.isNaN(num)) return;
+    this._update(t.dataset.field as keyof NabuEyesDashboardCardConfig, num as any);
+  };
+
   private _handleCSV = (e: Event) => {
     const t = e.currentTarget as HTMLInputElement & { dataset: { field?: string } };
     if (!t?.dataset?.field || !this._config) return;
@@ -411,17 +411,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       const v = (e.currentTarget as HaSelectElement)?.value;
       if (v) this._update(field, v as any);
     };
-
-  private _handleSlider(
-    field: 'glow_radius' | 'avatar_padding_vertical',
-    e: CustomEvent<{ value: number }>,
-  ): void {
-    if (!this._config) return;
-    const raw = (e.detail as any)?.value;
-    const num = Number(raw);
-    if (Number.isNaN(num)) return;
-    this._update(field, num as any);
-  }
 
   private _stop(e: Event) {
     e.stopPropagation();
@@ -456,24 +445,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         font-size: 14px;
         font-weight: 500;
         opacity: 0.8;
-      }
-
-      .slider-row {
-        display: grid;
-        grid-template-columns: 1fr 3fr auto;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .label {
-        font-size: 13px;
-      }
-
-      .value {
-        font-size: 13px;
-        text-align: right;
-        opacity: 0.8;
-        min-width: 48px;
       }
     `;
   }
