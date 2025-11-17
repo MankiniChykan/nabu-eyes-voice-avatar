@@ -39,6 +39,16 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   state_alarm_variant?: string;
   state_countdown_variant?: string;
   state_mute_variant?: string;
+
+  // Glow controls (one radius, four colour variants)
+  glow_radius?: number; // px
+  glow_color_blue?: string;
+  glow_color_light?: string;
+  glow_color_purple?: string;
+  glow_color_sepia?: string;
+
+  // Vertical padding around the avatar (top/bottom)
+  avatar_padding_vertical?: number; // px
 }
 
 type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 'playing';
@@ -101,6 +111,17 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       alarm_events: [],
       alarm_clear_events: [],
       alarm_active_states: DEFAULT_ALARM_ACTIVE_STATES,
+
+      // Glow defaults (shared radius, per-variant colours)
+      glow_radius: 30,
+      glow_color_blue: 'rgba(0, 21, 255, 0.35)',
+      glow_color_light: 'rgba(0, 255, 255, 0.4)',
+      glow_color_purple: 'rgba(255, 0, 255, 0.38)',
+      glow_color_sepia: 'rgba(255, 210, 0, 0.35)',
+
+      // Vertical padding default (matches your current look)
+      avatar_padding_vertical: 48,
+
       ...config,
       assist_entities: Array.isArray((config as NabuEyesDashboardCardConfig).assist_entities)
         ? [...((config as NabuEyesDashboardCardConfig).assist_entities ?? [])]
@@ -278,8 +299,27 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     const { src, glowClass } = asset;
 
+    const radius = this._config.glow_radius ?? 30;
+    const padding = this._config.avatar_padding_vertical ?? 48;
+
+    const {
+      glow_color_blue = 'rgba(0, 21, 255, 0.35)',
+      glow_color_light = 'rgba(0, 255, 255, 0.4)',
+      glow_color_purple = 'rgba(255, 0, 255, 0.38)',
+      glow_color_sepia = 'rgba(255, 210, 0, 0.35)',
+    } = this._config;
+
+    const styleVars = [
+      `--nabu-eyes-glow-radius: ${radius}px`,
+      `--nabu-eyes-glow-color-blue: ${glow_color_blue}`,
+      `--nabu-eyes-glow-color-light: ${glow_color_light}`,
+      `--nabu-eyes-glow-color-purple: ${glow_color_purple}`,
+      `--nabu-eyes-glow-color-sepia: ${glow_color_sepia}`,
+      `--nabu-eyes-padding-vertical: ${padding}px`,
+    ].join('; ');
+
     return html`
-      <div class="avatar-container">
+      <div class="avatar-container" style=${styleVars}>
         <img class="avatar ${glowClass}" src="${src}" alt="Nabu Eyes state" />
       </div>
     `;
@@ -416,16 +456,14 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         display: block;
-        /* Soft overall glow size */
-        --nabu-eyes-glow-radius: 30px;
       }
 
       .avatar-container {
         display: flex;
         align-items: center;
         justify-content: center;
-        /* Extra vertical padding so drop-shadow glow stays within the card */
-        padding: 48px 0;
+        /* Vertical padding is now configurable */
+        padding: var(--nabu-eyes-padding-vertical, 48px) 0;
         box-sizing: border-box;
       }
 
@@ -435,21 +473,33 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         height: auto;
       }
 
-      /* Variant glow colours – soft, not retina-searing */
+      /* Variant glow colours – all use shared radius, each with its own colour var */
       .glow-blue {
-        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(0, 21, 255, 0.35));
+        filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+          var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.35))
+        );
       }
 
       .glow-light {
-        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(0, 255, 255, 0.4));
+        filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+          var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.4))
+        );
       }
 
       .glow-purple {
-        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(255, 0, 255, 0.38));
+        filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+          var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.38))
+        );
       }
 
       .glow-sepia {
-        filter: drop-shadow(0 0 var(--nabu-eyes-glow-radius) rgba(255, 210, 0, 0.35));
+        filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+          var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.35))
+        );
       }
     `;
   }

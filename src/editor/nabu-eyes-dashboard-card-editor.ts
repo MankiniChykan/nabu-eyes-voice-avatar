@@ -75,6 +75,9 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     );
     const mediaOptions = Object.keys(this.hass.states).filter((e) => e.startsWith('media_player.'));
 
+    const glowRadius = cfg.glow_radius ?? 30;
+    const avatarPadding = cfg.avatar_padding_vertical ?? 48;
+
     return html`
       <div class="form">
         <ha-textfield
@@ -282,6 +285,71 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           @input=${this._handleCSV}
           data-field="alarm_active_states"
         ></ha-textfield>
+
+        <!-- Glow & layout controls -->
+        <div class="section-header">Glow & layout</div>
+
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Glow radius</span>
+            <span class="slider-value">${glowRadius} px</span>
+          </div>
+          <ha-slider
+            min="0"
+            max="200"
+            step="1"
+            .value=${glowRadius}
+            @value-changed=${this._handleNumber}
+            data-field="glow_radius"
+          ></ha-slider>
+        </div>
+
+        <div class="slider-row">
+          <div class="slider-label">
+            <span>Vertical padding</span>
+            <span class="slider-value">${avatarPadding} px</span>
+          </div>
+          <ha-slider
+            min="0"
+            max="200"
+            step="4"
+            .value=${avatarPadding}
+            @value-changed=${this._handleNumber}
+            data-field="avatar_padding_vertical"
+          ></ha-slider>
+        </div>
+
+        <ha-textfield
+          label="Glow colour (blue variant)"
+          helper="CSS color (e.g. rgba(0, 21, 255, 0.35))"
+          .value=${cfg.glow_color_blue ?? 'rgba(0, 21, 255, 0.35)'}
+          @input=${this._handleText}
+          data-field="glow_color_blue"
+        ></ha-textfield>
+
+        <ha-textfield
+          label="Glow colour (light/cyan variant)"
+          helper="CSS color (e.g. rgba(0, 255, 255, 0.4))"
+          .value=${cfg.glow_color_light ?? 'rgba(0, 255, 255, 0.4)'}
+          @input=${this._handleText}
+          data-field="glow_color_light"
+        ></ha-textfield>
+
+        <ha-textfield
+          label="Glow colour (purple variant)"
+          helper="CSS color (e.g. rgba(255, 0, 255, 0.38))"
+          .value=${cfg.glow_color_purple ?? 'rgba(255, 0, 255, 0.38)'}
+          @input=${this._handleText}
+          data-field="glow_color_purple"
+        ></ha-textfield>
+
+        <ha-textfield
+          label="Glow colour (sepia/gold variant)"
+          helper="CSS color (e.g. rgba(255, 210, 0, 0.35))"
+          .value=${cfg.glow_color_sepia ?? 'rgba(255, 210, 0, 0.35)'}
+          @input=${this._handleText}
+          data-field="glow_color_sepia"
+        ></ha-textfield>
       </div>
     `;
   }
@@ -375,6 +443,15 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     if (v) this._update(field, v as any);
   };
 
+  private _handleNumber = (e: CustomEvent) => {
+    const t = e.currentTarget as HTMLElement & { dataset?: { field?: string } };
+    if (!t?.dataset?.field || !this._config) return;
+    const raw = (e.detail as any)?.value;
+    const num = typeof raw === 'number' ? raw : Number(raw);
+    if (Number.isNaN(num)) return;
+    this._update(t.dataset.field as keyof NabuEyesDashboardCardConfig, num as any);
+  };
+
   private _stop(e: Event) {
     e.stopPropagation();
   }
@@ -400,6 +477,26 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         display: flex;
         align-items: center;
         justify-content: space-between;
+      }
+      .section-header {
+        margin-top: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        opacity: 0.8;
+      }
+      .slider-row {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .slider-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        opacity: 0.9;
+      }
+      .slider-value {
+        font-variant-numeric: tabular-nums;
       }
     `;
   }
