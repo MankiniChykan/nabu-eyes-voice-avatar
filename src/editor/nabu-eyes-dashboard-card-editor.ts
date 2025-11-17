@@ -312,8 +312,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
               max="200"
               step="1"
               .value=${cfg.avatar_padding_vertical ?? 48}
-              @value-changed=${(e: CustomEvent) =>
-                this._handleSlider('avatar_padding_vertical', e)}
+              @value-changed=${(e: CustomEvent) => this._handleSlider('avatar_padding_vertical', e)}
             ></ha-slider>
           </div>
           <div class="value">${cfg.avatar_padding_vertical ?? 48} px</div>
