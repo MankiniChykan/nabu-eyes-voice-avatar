@@ -330,7 +330,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         <h3 class="section-heading">Glow colours (RGBA)</h3>
 
         ${this._glowRow('Blue glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
-        ${this._glowRow('Light glow', 'glow_color_light', light.hex, light.alpha, DEFAULT_GLOW_LIGHT)}
+        ${this._glowRow(
+          'Light glow',
+          'glow_color_light',
+          light.hex,
+          light.alpha,
+          DEFAULT_GLOW_LIGHT,
+        )}
         ${this._glowRow(
           'Purple glow',
           'glow_color_purple',
