@@ -501,8 +501,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
          First shadows form a ~2px black stroke around non-transparent pixels,
          followed by coloured glows. */
       .glow-blue {
-        filter:
-          drop-shadow(0 0 0 var(--nabu-eyes-border-color))
+        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
           drop-shadow(1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(-1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(0 1px 0 var(--nabu-eyes-border-color))
@@ -522,8 +521,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       }
 
       .glow-light {
-        filter:
-          drop-shadow(0 0 0 var(--nabu-eyes-border-color))
+        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
           drop-shadow(1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(-1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(0 1px 0 var(--nabu-eyes-border-color))
@@ -543,8 +541,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       }
 
       .glow-purple {
-        filter:
-          drop-shadow(0 0 0 var(--nabu-eyes-border-color))
+        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
           drop-shadow(1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(-1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(0 1px 0 var(--nabu-eyes-border-color))
@@ -564,8 +561,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       }
 
       .glow-sepia {
-        filter:
-          drop-shadow(0 0 0 var(--nabu-eyes-border-color))
+        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
           drop-shadow(1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(-1px 0 0 var(--nabu-eyes-border-color))
           drop-shadow(0 1px 0 var(--nabu-eyes-border-color))
