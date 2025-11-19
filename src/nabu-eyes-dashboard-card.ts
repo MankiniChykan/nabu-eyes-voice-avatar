@@ -49,6 +49,9 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
 
   // Vertical padding around the avatar (top/bottom)
   avatar_padding_vertical?: number; // px
+
+  // Overlay mode: show centered over rest of dashboard
+  fullscreen_overlay?: boolean;
 }
 
 type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 'playing';
@@ -119,8 +122,11 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       glow_color_purple: 'rgba(255, 0, 255, 0.2)',
       glow_color_sepia: 'rgba(255, 210, 0, 0.2)',
 
-      // Vertical padding default (matches your current look)
+      // Vertical padding default
       avatar_padding_vertical: 0,
+
+      // Overlay off by default
+      fullscreen_overlay: false,
 
       ...config,
       assist_entities: Array.isArray((config as NabuEyesDashboardCardConfig).assist_entities)
@@ -299,8 +305,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     const { src, glowClass } = asset;
 
-    const radius = this._config.glow_radius ?? 30;
-    const padding = this._config.avatar_padding_vertical ?? 48;
+    const radius = this._config.glow_radius ?? 40;
+    const padding = this._config.avatar_padding_vertical ?? 0;
+    const overlay = this._config.fullscreen_overlay ?? false;
 
     const {
       glow_color_blue = 'rgba(0, 21, 255, 0.2)',
@@ -318,8 +325,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       `--nabu-eyes-padding-vertical: ${padding}px`,
     ].join('; ');
 
+    const containerClass = overlay ? 'avatar-container overlay' : 'avatar-container';
+
     return html`
-      <div class="avatar-container" style=${styleVars}>
+      <div class="${containerClass}" style=${styleVars}>
         <img class="avatar ${glowClass}" src="${src}" alt="Nabu Eyes state" />
       </div>
     `;
@@ -465,9 +474,20 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         display: flex;
         align-items: center;
         justify-content: center;
-        /* Vertical padding is now configurable */
-        padding: var(--nabu-eyes-padding-vertical, 48px) 0;
+        padding: var(--nabu-eyes-padding-vertical, 0px) 0;
         box-sizing: border-box;
+      }
+
+      .avatar-container.overlay {
+        position: fixed;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        pointer-events: none; /* let clicks pass through to dashboard */
       }
 
       .avatar {

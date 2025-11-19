@@ -54,6 +54,9 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       glow_color_light: config.glow_color_light ?? DEFAULT_GLOW_LIGHT,
       glow_color_purple: config.glow_color_purple ?? DEFAULT_GLOW_PURPLE,
       glow_color_sepia: config.glow_color_sepia ?? DEFAULT_GLOW_SEPIA,
+
+      // Overlay toggle default
+      fullscreen_overlay: config.fullscreen_overlay ?? false,
     };
   }
 
@@ -208,6 +211,14 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           ></ha-switch>
         </div>
 
+        <div class="switch-row">
+          <span>Overlay on top (centered)</span>
+          <ha-switch
+            .checked=${cfg.fullscreen_overlay ?? false}
+            @change=${this._handleOverlay}
+          ></ha-switch>
+        </div>
+
         <!-- Per-state variants -->
         <ha-select
           .value=${cfg.state_idle_variant ?? STATE_ASSET_MAP.idle}
@@ -311,7 +322,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           type="number"
           min="0"
           max="200"
-          .value=${String(cfg.glow_radius ?? 30)}
+          .value=${String(cfg.glow_radius ?? 40)}
           @input=${this._handleNumber}
           data-field="glow_radius"
         ></ha-textfield>
@@ -321,7 +332,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           type="number"
           min="0"
           max="200"
-          .value=${String(cfg.avatar_padding_vertical ?? 48)}
+          .value=${String(cfg.avatar_padding_vertical ?? 0)}
           @input=${this._handleNumber}
           data-field="avatar_padding_vertical"
         ></ha-textfield>
@@ -538,6 +549,11 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
   private _handleHide = (e: Event) => {
     const t = e.currentTarget as HaSwitchElement;
     this._update('hide_when_idle', !!t?.checked);
+  };
+
+  private _handleOverlay = (e: Event) => {
+    const t = e.currentTarget as HaSwitchElement;
+    this._update('fullscreen_overlay', !!t?.checked);
   };
 
   private _handlePlaying = (e: Event) => {
