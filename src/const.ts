@@ -15,13 +15,10 @@ export const EQUALIZER_VARIANTS = {
   '1px_equalizer_dash.gif': '1px Equalizer',
   '1px_equalizer_fader_dash.gif': '1px Equalizer Fader',
   '1px_equalizer_fader_2_dash.gif': '1px Equalizer Fader 2',
-  '1px_equalizer_bottom_dash.gif': '1px Equalizer Bottom',
   '2px_equalizer_dash.gif': '2px Equalizer',
   '2px_equalizer_fader_dash.gif': '2px Equalizer Fader',
   '2px_equalizer_fader_2_dash.gif': '2px Equalizer Fader 2',
   '2px_equalizer_bottom_dash.gif': '2px Equalizer Bottom',
-  // Optional odd filename variant if you keep it
-  '2px_equalizer_fader-dash.gif': '2px Equalizer Fader (alt)',
 
   // Embedded Nabu EQ variants per palette
   'nabu_eq_dash_blue.gif': 'Nabu EQ Blue',
