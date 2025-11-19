@@ -310,8 +310,8 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
       :host {
         display: block;
         /* derive inner + mid radii from the single config radius */
-        --nabu-eyes-glow-inner-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.35);
-        --nabu-eyes-glow-middle-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.7);
+        --nabu-eyes-glow-inner-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.45);
+        --nabu-eyes-glow-middle-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.8);
       }
 
       .avatar-container {
@@ -342,28 +342,31 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
 
       /* Variant glow colours all use shared radius, each with its own colour var */
       .glow-blue {
+        /* 2px black border around the animated block */
+        box-shadow: 0 0 0 2px #000;
         filter: drop-shadow(
             0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.55))
+              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.7))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.45))
+              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.55))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.35))
+              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.4))
           );
       }
 
       .glow-light {
+        box-shadow: 0 0 0 2px #000;
         filter: drop-shadow(
             0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.6))
+              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.7))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.5))
+              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.55))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius, 30px)
@@ -372,32 +375,34 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
       }
 
       .glow-purple {
+        box-shadow: 0 0 0 2px #000;
         filter: drop-shadow(
             0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.58))
+              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.7))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.48))
+              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.55))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.38))
+              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.4))
           );
       }
 
       .glow-sepia {
+        box-shadow: 0 0 0 2px #000;
         filter: drop-shadow(
             0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.55))
+              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.7))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.45))
+              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.55))
           )
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.35))
+              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.4))
           );
       }
     `}}Oe.properties={hass:{attribute:!1},_config:{state:!0},_countdownActive:{state:!0},_alarmActive:{state:!0}};const ze="nabu-eyes-dashboard-card";if(customElements.get(ze)||customElements.define(ze,Oe),"undefined"!=typeof window){window.customCards=window.customCards??[];window.customCards.some(e=>e.type===ze)||window.customCards.push({type:ze,name:"Nabu Eyes Dashboard",description:"Animated Assist avatar with media and alarm indicators.",preview:!0})}export{Oe as NabuEyesDashboardCard};
