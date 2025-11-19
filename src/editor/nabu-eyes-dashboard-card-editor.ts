@@ -18,10 +18,10 @@ type HaSwitchElement = HTMLElement & { checked?: boolean };
 const hasEntitiesPicker = () => !!customElements.get('ha-entities-picker');
 const hasEntityPicker = () => !!customElements.get('ha-entity-picker');
 
-const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.35)';
-const DEFAULT_GLOW_LIGHT = 'rgba(0, 255, 255, 0.4)';
-const DEFAULT_GLOW_PURPLE = 'rgba(255, 0, 255, 0.38)';
-const DEFAULT_GLOW_SEPIA = 'rgba(255, 210, 0, 0.35)';
+const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.2)';
+const DEFAULT_GLOW_LIGHT = 'rgba(0, 255, 255, 0.2)';
+const DEFAULT_GLOW_PURPLE = 'rgba(255, 0, 255, 0.2)';
+const DEFAULT_GLOW_SEPIA = 'rgba(255, 210, 0, 0.2)';
 
 export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceCardEditor {
   public hass!: HomeAssistant;
@@ -46,8 +46,8 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       hide_when_idle: config.hide_when_idle ?? false,
 
       // Ensure numeric controls have stable defaults in the editor
-      glow_radius: config.glow_radius ?? 30,
-      avatar_padding_vertical: config.avatar_padding_vertical ?? 48,
+      glow_radius: config.glow_radius ?? 40,
+      avatar_padding_vertical: config.avatar_padding_vertical ?? 0,
 
       // Per-variant glow colours (rgba strings)
       glow_color_blue: config.glow_color_blue ?? DEFAULT_GLOW_BLUE,

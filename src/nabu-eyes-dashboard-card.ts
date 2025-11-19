@@ -113,14 +113,14 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       alarm_active_states: DEFAULT_ALARM_ACTIVE_STATES,
 
       // Glow defaults (shared radius, per-variant colours)
-      glow_radius: 30,
-      glow_color_blue: 'rgba(0, 21, 255, 0.35)',
-      glow_color_light: 'rgba(0, 255, 255, 0.4)',
-      glow_color_purple: 'rgba(255, 0, 255, 0.38)',
-      glow_color_sepia: 'rgba(255, 210, 0, 0.35)',
+      glow_radius: 40,
+      glow_color_blue: 'rgba(0, 21, 255, 0.2)',
+      glow_color_light: 'rgba(0, 255, 255, 0.2)',
+      glow_color_purple: 'rgba(255, 0, 255, 0.2)',
+      glow_color_sepia: 'rgba(255, 210, 0, 0.2)',
 
       // Vertical padding default (matches your current look)
-      avatar_padding_vertical: 48,
+      avatar_padding_vertical: 0,
 
       ...config,
       assist_entities: Array.isArray((config as NabuEyesDashboardCardConfig).assist_entities)
@@ -303,10 +303,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const padding = this._config.avatar_padding_vertical ?? 48;
 
     const {
-      glow_color_blue = 'rgba(0, 21, 255, 0.35)',
-      glow_color_light = 'rgba(0, 255, 255, 0.4)',
-      glow_color_purple = 'rgba(255, 0, 255, 0.38)',
-      glow_color_sepia = 'rgba(255, 210, 0, 0.35)',
+      glow_color_blue = 'rgba(0, 21, 255, 0.2)',
+      glow_color_light = 'rgba(0, 255, 255, 0.2)',
+      glow_color_purple = 'rgba(255, 0, 255, 0.2)',
+      glow_color_sepia = 'rgba(255, 210, 0, 0.2)',
     } = this._config;
 
     const styleVars = [
