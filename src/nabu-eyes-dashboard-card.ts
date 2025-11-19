@@ -452,96 +452,91 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return undefined;
   }
 
-  static get styles(): CSSResultGroup {
-    return css`
-      :host {
-        display: block;
-        /* derive inner + mid radii from the single config radius */
-        --nabu-eyes-glow-inner-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.35);
-        --nabu-eyes-glow-middle-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.7);
-      }
+static get styles(): CSSResultGroup {
+  return css`
+    :host {
+      display: block;
+      /* derive inner + mid radii from the single config radius */
+      --nabu-eyes-glow-inner-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.35);
+      --nabu-eyes-glow-middle-radius: calc(var(--nabu-eyes-glow-radius, 30px) * 0.7);
+    }
 
-      .avatar-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        /* Vertical padding is now configurable */
-        padding: var(--nabu-eyes-padding-vertical, 48px) 0;
-        box-sizing: border-box;
-      }
+    .avatar-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* Vertical padding is now configurable */
+      padding: var(--nabu-eyes-padding-vertical, 48px) 0;
+      box-sizing: border-box;
+    }
 
-      .avatar {
-        display: block;
-        max-width: 100%;
-        height: auto;
-      }
+    .avatar {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
 
-      /* Variant glow colours all use shared radius, each with its own colour var */
-      .glow-blue {
-        filter:
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.55))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.45))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.35))
-          );
-      }
+    /* Variant glow colours all use shared radius, each with its own colour var */
+    .glow-blue {
+      filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-inner-radius)
+            var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.55))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-middle-radius)
+            var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.45))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+            var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.35))
+        );
+    }
 
-      .glow-light {
-        filter:
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.6))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.5))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.4))
-          );
-      }
+    .glow-light {
+      filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-inner-radius)
+            var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.6))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-middle-radius)
+            var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.5))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+            var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.4))
+        );
+    }
 
-      .glow-purple {
-        filter:
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.58))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.48))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.38))
-          );
-      }
+    .glow-purple {
+      filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-inner-radius)
+            var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.58))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-middle-radius)
+            var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.48))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+            var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.38))
+        );
+    }
 
-      .glow-sepia {
-        filter:
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.55))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-middle-radius)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.45))
-          )
-          drop-shadow(
-            0 0 var(--nabu-eyes-glow-radius, 30px)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.35))
-          );
-      }
-    `;
-  }
+    .glow-sepia {
+      filter: drop-shadow(
+          0 0 var(--nabu-eyes-glow-inner-radius)
+            var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.55))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-middle-radius)
+            var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.45))
+        )
+        drop-shadow(
+          0 0 var(--nabu-eyes-glow-radius, 30px)
+            var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.35))
+        );
+    }
+  `;
 }
 
 declare global {
