@@ -15,7 +15,6 @@ import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 type HaSelectElement = HTMLElement & { value?: string };
 type HaSwitchElement = HTMLElement & { checked?: boolean };
 
-const hasEntitiesPicker = () => !!customElements.get('ha-entities-picker');
 const hasEntityPicker = () => !!customElements.get('ha-entity-picker');
 
 const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.5)';
@@ -125,13 +124,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
                         : [],
                   )}
               ></ha-entities-picker>
-            `
-          : this._fallbackMulti(
-              'Assist satellite entities (comma separated)',
-              'assist_entities',
-              cfg.assist_entities ?? [],
-              assistOptions,
-            )}
 
         <!-- Equalizer media player -->
         ${hasEntityPicker()
