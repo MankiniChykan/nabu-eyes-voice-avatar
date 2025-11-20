@@ -15,8 +15,6 @@ import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
 type HaSelectElement = HTMLElement & { value?: string };
 type HaSwitchElement = HTMLElement & { checked?: boolean };
 
-const hasEntityPicker = () => !!customElements.get('ha-entity-picker');
-
 const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.5)';
 const DEFAULT_GLOW_LIGHT = 'rgba(0, 255, 255, 0.5)';
 const DEFAULT_GLOW_PURPLE = 'rgba(255, 0, 255, 0.5)';
@@ -66,17 +64,20 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     if (!this._bootstrapped) {
       this._bootstrapped = true;
       const patch: Partial<NabuEyesDashboardCardConfig> = {};
+
       if (!this._config.assist_entities?.length) {
         const discovered = Object.keys(this.hass.states).filter((e) =>
           e.startsWith('assist_satellite.'),
         );
         if (discovered.length) patch.assist_entities = discovered;
       }
+
       const firstMP =
         this._config.media_player ??
         Object.keys(this.hass.states).find((e) => e.startsWith('media_player.'));
       if (!this._config.media_player && firstMP) patch.media_player = firstMP;
       if (!this._config.mute_media_player && firstMP) patch.mute_media_player = firstMP;
+
       if (Object.keys(patch).length) {
         const merged = { ...this._config, ...patch };
         this._config = merged;
@@ -85,9 +86,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     }
 
     const cfg = this._config;
-
-    // Build suggestion lists for fallbacks
-    const mediaOptions = Object.keys(this.hass.states).filter((e) => e.startsWith('media_player.'));
 
     const blue = this._rgbaToHexAlpha(cfg.glow_color_blue, DEFAULT_GLOW_BLUE);
     const light = this._rgbaToHexAlpha(cfg.glow_color_light, DEFAULT_GLOW_LIGHT);
@@ -103,7 +101,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           data-field="name"
         ></ha-textfield>
 
-        <!-- Assist satellites (chips + Add) -->
+        <!-- Assist satellites (multi-entity chips picker) -->
         <ha-entities-picker
           .hass=${this.hass}
           .value=${cfg.assist_entities ?? []}
@@ -121,44 +119,26 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ></ha-entities-picker>
 
         <!-- Equalizer media player -->
-        ${hasEntityPicker()
-          ? html`
-              <ha-entity-picker
-                .hass=${this.hass}
-                .value=${cfg.media_player ?? ''}
-                label="Media player for equalizer"
-                domain="media_player"
-                allow-custom-entity
-                @value-changed=${(e: CustomEvent) =>
-                  this._update('media_player', (e.detail?.value as string) || undefined)}
-              ></ha-entity-picker>
-            `
-          : this._fallbackSingle(
-              'Media player for equalizer',
-              'media_player',
-              cfg.media_player ?? '',
-              mediaOptions,
-            )}
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${cfg.media_player ?? ''}
+          label="Media player for equalizer"
+          domain="media_player"
+          allow-custom-entity
+          @value-changed=${(e: CustomEvent) =>
+            this._update('media_player', (e.detail?.value as string) || undefined)}
+        ></ha-entity-picker>
 
         <!-- Mute source media player -->
-        ${hasEntityPicker()
-          ? html`
-              <ha-entity-picker
-                .hass=${this.hass}
-                .value=${cfg.mute_media_player ?? cfg.media_player ?? ''}
-                label="Media player for mute state"
-                domain="media_player"
-                allow-custom-entity
-                @value-changed=${(e: CustomEvent) =>
-                  this._update('mute_media_player', (e.detail?.value as string) || undefined)}
-              ></ha-entity-picker>
-            `
-          : this._fallbackSingle(
-              'Media player for mute state',
-              'mute_media_player',
-              cfg.mute_media_player ?? cfg.media_player ?? '',
-              mediaOptions,
-            )}
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${cfg.mute_media_player ?? cfg.media_player ?? ''}
+          label="Media player for mute state"
+          domain="media_player"
+          allow-custom-entity
+          @value-changed=${(e: CustomEvent) =>
+            this._update('mute_media_player', (e.detail?.value as string) || undefined)}
+        ></ha-entity-picker>
 
         <ha-select
           .value=${cfg.playing_variant ?? DEFAULT_PLAYING_VARIANT}
@@ -429,46 +409,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         @input=${this._handleCSV}
         data-field=${field}
       ></ha-textfield>
-    `;
-  }
-
-  // ---- Fallback renderers ----
-  private _fallbackSingle(
-    label: string,
-    field: keyof NabuEyesDashboardCardConfig,
-    value: string,
-    options: string[],
-  ) {
-    const listId = `list-${field}`;
-    return html`
-      <ha-textfield
-        label=${label}
-        .value=${value ?? ''}
-        @input=${this._handleText}
-        data-field=${field}
-        list=${listId}
-      ></ha-textfield>
-      <datalist id=${listId}>${options.map((o) => html`<option value=${o}></option>`)}</datalist>
-    `;
-  }
-
-  private _fallbackMulti(
-    label: string,
-    field: keyof NabuEyesDashboardCardConfig,
-    values: string[],
-    options: string[],
-  ) {
-    const listId = `list-${field}`;
-    return html`
-      <ha-textfield
-        label=${label}
-        helper="Comma separated"
-        .value=${(values ?? []).join(', ')}
-        @input=${this._handleCSV}
-        data-field=${field}
-        list=${listId}
-      ></ha-textfield>
-      <datalist id=${listId}>${options.map((o) => html`<option value=${o}></option>`)}</datalist>
     `;
   }
 
