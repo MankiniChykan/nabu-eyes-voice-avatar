@@ -338,7 +338,15 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ></ha-textfield>
 
         <!-- Per-variant glow colours -->
-        <h3 class="section-heading">Variant Glow Colours (RGBA)</h3>
+        <div class="section-heading-row">
+          <h3 class="section-heading">Glow Colours (RGBA)</h3>
+          <mwc-button
+            class="glow-reset-button"
+            @click=${this._resetGlowColours}
+          >
+            Reset glow colours
+          </mwc-button>
+        </div>
 
         ${this._glowRow('Blue Glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
         ${this._glowRow(
@@ -362,10 +370,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           sepia.alpha,
           DEFAULT_GLOW_SEPIA,
         )}
-      </div>
-
-      <div class="glow-reset-row">
-        <mwc-button @click=${this._resetGlowColours}>Reset glow colours</mwc-button>
       </div>
     `;
   }
@@ -650,8 +654,16 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         --mdc-text-field-outlined-hover-border-color: transparent;
       }
 
-      .glow-reset-row {
-        margin-bottom: 8px;
+      .section-heading-row {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .glow-reset-button {
+        --mdc-theme-primary: #ff5555; /* red button */
       }
     `;
   }
