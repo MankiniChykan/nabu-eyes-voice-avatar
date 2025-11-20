@@ -338,25 +338,29 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ></ha-textfield>
 
         <!-- Per-variant glow colours -->
-        <h3 class="section-heading">Glow colours (RGBA)</h3>
+        <h3 class="section-heading">Variant Glow Colours (RGBA)</h3>
 
-        ${this._glowRow('Blue glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
+        <div class="glow-reset-row">
+          <mwc-button @click=${this._resetGlowColours}>Reset glow colours</mwc-button>
+        </div>
+
+        ${this._glowRow('Blue Glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
         ${this._glowRow(
-          'Light glow',
+          'Light Glow',
           'glow_color_light',
           light.hex,
           light.alpha,
           DEFAULT_GLOW_LIGHT,
         )}
         ${this._glowRow(
-          'Purple glow',
+          'Purple Glow',
           'glow_color_purple',
           purple.hex,
           purple.alpha,
           DEFAULT_GLOW_PURPLE,
         )}
         ${this._glowRow(
-          'Sepia glow',
+          'Sepia Glow',
           'glow_color_sepia',
           sepia.hex,
           sepia.alpha,
@@ -365,6 +369,21 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       </div>
     `;
   }
+
+  private _resetGlowColours = (): void => {
+    if (!this._config) return;
+
+    const next: NabuEyesDashboardCardConfig = {
+      ...this._config,
+      glow_color_blue: DEFAULT_GLOW_BLUE,
+      glow_color_light: DEFAULT_GLOW_LIGHT,
+      glow_color_purple: DEFAULT_GLOW_PURPLE,
+      glow_color_sepia: DEFAULT_GLOW_SEPIA,
+    };
+
+    this._config = next;
+    fireEvent(this, 'config-changed', { config: next });
+  };
 
   private _glowRow(
     label: string,
@@ -606,6 +625,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         font-size: 14px;
         font-weight: 500;
         opacity: 0.8;
+      }
+
+      .glow-reset-row {
+        margin-bottom: 8px;
       }
 
       .color-row {
