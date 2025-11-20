@@ -18,10 +18,10 @@ type HaSwitchElement = HTMLElement & { checked?: boolean };
 const hasEntitiesPicker = () => !!customElements.get('ha-entities-picker');
 const hasEntityPicker = () => !!customElements.get('ha-entity-picker');
 
-const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.2)';
-const DEFAULT_GLOW_LIGHT = 'rgba(0, 255, 255, 0.2)';
-const DEFAULT_GLOW_PURPLE = 'rgba(255, 0, 255, 0.2)';
-const DEFAULT_GLOW_SEPIA = 'rgba(255, 210, 0, 0.2)';
+const DEFAULT_GLOW_BLUE = 'rgba(0, 21, 255, 0.5)';
+const DEFAULT_GLOW_LIGHT = 'rgba(0, 255, 255, 0.5)';
+const DEFAULT_GLOW_PURPLE = 'rgba(255, 0, 255, 0.5)';
+const DEFAULT_GLOW_SEPIA = 'rgba(255, 210, 0, 0.5)';
 
 export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceCardEditor {
   public hass!: HomeAssistant;
