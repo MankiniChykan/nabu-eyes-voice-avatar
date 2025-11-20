@@ -75,6 +75,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       const firstMP =
         this._config.media_player ??
         Object.keys(this.hass.states).find((e) => e.startsWith('media_player.'));
+
       if (!this._config.media_player && firstMP) patch.media_player = firstMP;
       if (!this._config.mute_media_player && firstMP) patch.mute_media_player = firstMP;
 
