@@ -499,7 +499,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       /* One tight black halo around non-transparent pixels + single colour glow per palette */
 
       .glow-blue {
-        filter: drop-shadow(0 0 2px var(--nabu-eyes-border-color)) /* blue glow */
+        filter: drop-shadow(0 0 2px var(--nabu-eyes-border-color))
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius) var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.5))
           );
