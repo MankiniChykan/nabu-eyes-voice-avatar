@@ -208,14 +208,14 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:t=
         <!-- Per-variant glow colours -->
         <h3 class="section-heading">Variant Glow Colours (RGBA)</h3>
 
-        <div class="glow-reset-row">
-          <mwc-button @click=${this._resetGlowColours}>Reset glow colours</mwc-button>
-        </div>
-
         ${this._glowRow("Blue Glow","glow_color_blue",i.hex,i.alpha,Et)}
         ${this._glowRow("Light Glow","glow_color_light",a.hex,a.alpha,St)}
         ${this._glowRow("Purple Glow","glow_color_purple",n.hex,n.alpha,Ct)}
         ${this._glowRow("Sepia Glow","glow_color_sepia",r.hex,r.alpha,Pt)}
+      </div>
+
+      <div class="glow-reset-row">
+        <mwc-button @click=${this._resetGlowColours}>Reset glow colours</mwc-button>
       </div>
     `}_glowRow(t,e,s,i,a){return B`
       <div class="color-row">
@@ -284,10 +284,6 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:t=
         opacity: 0.8;
       }
 
-      .glow-reset-row {
-        margin-bottom: 8px;
-      }
-
       .color-row {
         display: grid;
         grid-template-columns: 2fr auto 80px;
@@ -309,6 +305,10 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:t=
 
       .alpha-input {
         --mdc-text-field-outlined-hover-border-color: transparent;
+      }
+
+      .glow-reset-row {
+        margin-bottom: 8px;
       }
     `}}Nt.properties={hass:{attribute:!1},_config:{state:!0}},customElements.get("nabu-eyes-dashboard-card-editor")||customElements.define("nabu-eyes-dashboard-card-editor",Nt);const Mt=vt,Ot=["responding","playing","processing","listening","idle"];class Tt extends nt{constructor(){super(...arguments),this._countdownActive=!1,this._alarmActive=!1,this._eventUnsubscribes=[]}static async getConfigElement(){return document.createElement("nabu-eyes-dashboard-card-editor")}static getStubConfig(){return{type:"custom:nabu-eyes-dashboard-card",name:"Nabu Eyes",assist_entities:[],asset_path:lt}}setConfig(t){if(!t)throw new Error("Invalid configuration.");const e={hide_when_idle:!1,playing_variant:ot,media_player_equalizer:ht,countdown_events:[],countdown_clear_events:[],alarm_events:[],alarm_clear_events:[],alarm_active_states:$t,glow_radius:40,glow_color_blue:"rgba(0, 21, 255, 0.5)",glow_color_light:"rgba(0, 255, 255, 0.5)",glow_color_purple:"rgba(255, 0, 255, 0.5)",glow_color_sepia:"rgba(255, 210, 0, 0.5)",avatar_padding_vertical:0,fullscreen_overlay:!1,...t,assist_entities:Array.isArray(t.assist_entities)?[...t.assist_entities??[]]:[]};e.assist_entities=this._normalizeStringArray(e.assist_entities),e.countdown_events=this._normalizeStringArray(e.countdown_events),e.countdown_clear_events=this._normalizeStringArray(e.countdown_clear_events),e.alarm_events=this._normalizeStringArray(e.alarm_events),e.alarm_clear_events=this._normalizeStringArray(e.alarm_clear_events),e.alarm_entities=this._normalizeStringArray(e.alarm_entities),e.alarm_active_states=this._normalizeStringArray(e.alarm_active_states?.length?e.alarm_active_states:[...$t]);const s=e.asset_path?.trim();e.asset_path=s&&s.length>0?s:lt,e.playing_variant&&e.playing_variant in ct||(e.playing_variant=ot),e.media_player_equalizer&&!(e.media_player_equalizer in _t)&&(e.media_player_equalizer=ht),this._config=e,this._subscribeToEvents()}_normalizeStringArray(t){return Array.from(new Set((t??[]).map(t=>t?.trim()).filter(t=>!!t?.length)))}disconnectedCallback(){super.disconnectedCallback(),this._unsubscribeFromEvents()}updated(t){t.has("hass")&&this._subscribeToEvents()}async _subscribeToEvents(){if(this._unsubscribeFromEvents(),!this.hass?.connection||!this._config)return;const t=new Set([...this._config.countdown_events??[],...this._config.countdown_clear_events??[],...this._config.alarm_events??[],...this._config.alarm_clear_events??[]]);if(0!==t.size)for(const e of t)if(e)try{const t=await this.hass.connection.subscribeEvents(t=>{this._handleEvent(e,t.event_type,t.data)},e);this._eventUnsubscribes.push(t)}catch(t){console.warn(`nabu-eyes-dashboard-card: failed to subscribe to event ${e}`,t)}}_unsubscribeFromEvents(){for(;this._eventUnsubscribes.length;){const t=this._eventUnsubscribes.pop();t&&t()}}_handleEvent(t,e,s){if(!this._config||e!==t)return;const{countdown_events:i=[],countdown_clear_events:a=[],alarm_events:n=[],alarm_clear_events:r=[]}=this._config;if(i.includes(e)&&(this._countdownActive=!0),a.includes(e)&&(this._countdownActive=!1),n.includes(e)&&(this._alarmActive=!0),r.includes(e)&&(this._alarmActive=!1),s&&Object.prototype.hasOwnProperty.call(s,"active")&&"boolean"==typeof s.active){const t=!!s.active;(i.includes(e)||a.includes(e))&&(this._countdownActive=t),(n.includes(e)||r.includes(e))&&(this._alarmActive=t)}}getCardSize(){return 3}_resolveStateFilename(t){if(!this._config)return Mt[t];switch(t){case"idle":return this._config.state_idle_variant||Mt.idle;case"listening":return this._config.state_listening_variant||Mt.listening;case"processing":return this._config.state_processing_variant||Mt.processing;case"responding":return this._config.state_responding_variant||Mt.responding;case"playing":return this._config.playing_variant||Mt.playing;case"alarm":return this._config.state_alarm_variant||Mt.alarm;case"countdown":return this._config.state_countdown_variant||Mt.countdown;case"mute":return this._config.state_mute_variant||Mt.mute;default:return Mt[t]}}_inferGlowClass(t){const e=t.toLowerCase();return e.includes("_dash_light")?"glow-light":e.includes("_dash_purple")?"glow-purple":e.includes("_dash_sepia")?"glow-sepia":"glow-blue"}render(){if(!this._config)return B``;const t=this._determineAsset();if(!t)return B``;const{src:e,glowClass:s}=t,i=this._config.glow_radius??40,a=this._config.avatar_padding_vertical??0,n=this._config.fullscreen_overlay??!1,{glow_color_blue:r="rgba(0, 21, 255, 0.5)",glow_color_light:l="rgba(0, 255, 255, 0.5)",glow_color_purple:o="rgba(255, 0, 255, 0.5)",glow_color_sepia:h="rgba(255, 210, 0, 0.5)"}=this._config,c=[`--nabu-eyes-glow-radius: ${i}px`,`--nabu-eyes-glow-color-blue: ${r}`,`--nabu-eyes-glow-color-light: ${l}`,`--nabu-eyes-glow-color-purple: ${o}`,`--nabu-eyes-glow-color-sepia: ${h}`,`--nabu-eyes-padding-vertical: ${a}px`].join("; ");return B`
       <div class="${n?"avatar-container overlay":"avatar-container"}" style=${c}>
