@@ -1,5 +1,6 @@
 import { css, CSSResultGroup, html, LitElement, TemplateResult } from 'lit';
 import { fireEvent, HomeAssistant, LovelaceCardEditor } from 'custom-card-helpers';
+import '@material/mwc-button';
 import {
   DEFAULT_ALARM_ACTIVE_STATES,
   DEFAULT_ASSET_PATH,
@@ -87,9 +88,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     const cfg = this._config;
 
     // Build suggestion lists for fallbacks
-    const assistOptions = Object.keys(this.hass.states).filter((e) =>
-      e.startsWith('assist_satellite.'),
-    );
     const mediaOptions = Object.keys(this.hass.states).filter((e) => e.startsWith('media_player.'));
 
     const blue = this._rgbaToHexAlpha(cfg.glow_color_blue, DEFAULT_GLOW_BLUE);
@@ -106,7 +104,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           data-field="name"
         ></ha-textfield>
 
-        <!-- Assist satellites -->
+        <!-- Assist satellites (chips + Add) -->
         <ha-entities-picker
           .hass=${this.hass}
           .value=${cfg.assist_entities ?? []}
@@ -328,15 +326,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ></ha-textfield>
 
         <!-- Per-variant glow colours -->
-        <div class="section-heading-row">
-          <h3 class="section-heading">Glow Colours (RGBA)</h3>
-          <mwc-button
-            class="glow-reset-button"
-            @click=${this._resetGlowColours}
-          >
-            Reset glow colours
-          </mwc-button>
-        </div>
+        <h3 class="section-heading">Variant Glow Colours (RGBA)</h3>
 
         ${this._glowRow('Blue Glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
         ${this._glowRow(
@@ -360,6 +350,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           sepia.alpha,
           DEFAULT_GLOW_SEPIA,
         )}
+
+        <div class="glow-reset-row">
+          <span class="glow-reset-heading">Reset Glow Colours</span>
+          <mwc-button class="glow-reset-button" @click=${this._resetGlowColours}>
+            Reset glow colours
+          </mwc-button>
+        </div>
       </div>
     `;
   }
@@ -644,16 +641,20 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         --mdc-text-field-outlined-hover-border-color: transparent;
       }
 
-      .section-heading-row {
-        margin-top: 16px;
+      .glow-reset-row {
+        margin-top: 8px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+      }
+
+      .glow-reset-heading {
+        font-size: 13px;
+        opacity: 0.8;
       }
 
       .glow-reset-button {
-        --mdc-theme-primary: #ff5555; /* red button */
+        --mdc-theme-primary: #f44336;
       }
     `;
   }
