@@ -107,23 +107,21 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         ></ha-textfield>
 
         <!-- Assist satellites -->
-        ${hasEntitiesPicker()
-          ? html`
-              <ha-entities-picker
-                .hass=${this.hass}
-                .value=${cfg.assist_entities ?? []}
-                label="Assist satellite entities"
-                allow-custom-entity
-                @value-changed=${(e: CustomEvent) =>
-                  this._update(
-                    'assist_entities',
-                    Array.isArray(e.detail?.value)
-                      ? (e.detail.value as string[])
-                      : e.detail?.value
-                        ? [e.detail.value as string]
-                        : [],
-                  )}
-              ></ha-entities-picker>
+        <ha-entities-picker
+          .hass=${this.hass}
+          .value=${cfg.assist_entities ?? []}
+          label="Assist satellite entities"
+          allow-custom-entity
+          @value-changed=${(e: CustomEvent) =>
+            this._update(
+              'assist_entities',
+              Array.isArray(e.detail?.value)
+                ? (e.detail.value as string[])
+                : e.detail?.value
+                  ? [e.detail.value as string]
+                  : [],
+            )}
+        ></ha-entities-picker>
 
         <!-- Equalizer media player -->
         ${hasEntityPicker()
