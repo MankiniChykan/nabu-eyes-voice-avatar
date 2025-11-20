@@ -465,6 +465,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         display: block;
+        /* default radius + border colour */
+        --nabu-eyes-glow-radius: 40px;
         --nabu-eyes-border-color: #000;
       }
 
@@ -494,41 +496,42 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         height: auto;
       }
 
-      /* Variant glow colours all use shared radius, each with its own colour var.
-         First shadows form a ~2px black stroke around non-transparent pixels,
-         followed by coloured glows. */
+      /* One tight black halo around non-transparent pixels + single colour glow per palette */
+
       .glow-blue {
-        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
-          drop-shadow(3px 0 0 var(--nabu-eyes-border-color))
+        filter:
+          /* ~2px black halo */
+          drop-shadow(0 0 1px var(--nabu-eyes-border-color))
+          /* blue glow */
           drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
-              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.55))
+            0 0 var(--nabu-eyes-glow-radius)
+              var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.2))
           );
       }
 
       .glow-light {
-        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
-          drop-shadow(3px 0 0 var(--nabu-eyes-border-color))
+        filter:
+          drop-shadow(0 0 1px var(--nabu-eyes-border-color))
           drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
+            0 0 var(--nabu-eyes-glow-radius)
               var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.2))
           );
       }
 
       .glow-purple {
-        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
-          drop-shadow(3px 0 0 var(--nabu-eyes-border-color))
+        filter:
+          drop-shadow(0 0 1px var(--nabu-eyes-border-color))
           drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
+            0 0 var(--nabu-eyes-glow-radius)
               var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.2))
           );
       }
 
       .glow-sepia {
-        filter: drop-shadow(0 0 0 var(--nabu-eyes-border-color))
-          drop-shadow(3px 0 0 var(--nabu-eyes-border-color))
+        filter:
+          drop-shadow(0 0 1px var(--nabu-eyes-border-color))
           drop-shadow(
-            0 0 var(--nabu-eyes-glow-inner-radius)
+            0 0 var(--nabu-eyes-glow-radius)
               var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.2))
           );
       }
