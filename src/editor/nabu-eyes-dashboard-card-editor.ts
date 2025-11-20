@@ -340,10 +340,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         <!-- Per-variant glow colours -->
         <h3 class="section-heading">Variant Glow Colours (RGBA)</h3>
 
-        <div class="glow-reset-row">
-          <mwc-button @click=${this._resetGlowColours}>Reset glow colours</mwc-button>
-        </div>
-
         ${this._glowRow('Blue Glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
         ${this._glowRow(
           'Light Glow',
@@ -366,6 +362,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
           sepia.alpha,
           DEFAULT_GLOW_SEPIA,
         )}
+      </div>
+
+      <div class="glow-reset-row">
+        <mwc-button @click=${this._resetGlowColours}>Reset glow colours</mwc-button>
       </div>
     `;
   }
@@ -627,10 +627,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         opacity: 0.8;
       }
 
-      .glow-reset-row {
-        margin-bottom: 8px;
-      }
-
       .color-row {
         display: grid;
         grid-template-columns: 2fr auto 80px;
@@ -652,6 +648,10 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
       .alpha-input {
         --mdc-text-field-outlined-hover-border-color: transparent;
+      }
+
+      .glow-reset-row {
+        margin-bottom: 8px;
       }
     `;
   }
