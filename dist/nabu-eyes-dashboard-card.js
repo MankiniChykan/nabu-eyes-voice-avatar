@@ -347,7 +347,7 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
           /* ~2px black halo */ drop-shadow(0 0 6px var(--nabu-eyes-border-color))
           /* blue glow */
           drop-shadow(
-            0 0 var(--nabu-eyes-glow-radius) var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.2))
+            0 0 var(--nabu-eyes-glow-radius) var(--nabu-eyes-glow-color-blue, rgba(0, 21, 255, 0.5))
           );
       }
 
@@ -355,7 +355,7 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
         filter: drop-shadow(0 0 6px var(--nabu-eyes-border-color))
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius)
-              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.2))
+              var(--nabu-eyes-glow-color-light, rgba(0, 255, 255, 0.5))
           );
       }
 
@@ -363,7 +363,7 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
         filter: drop-shadow(0 0 6px var(--nabu-eyes-border-color))
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius)
-              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.2))
+              var(--nabu-eyes-glow-color-purple, rgba(255, 0, 255, 0.5))
           );
       }
 
@@ -371,7 +371,7 @@ const w=globalThis,A=w.trustedTypes,x=A?A.createPolicy("lit-html",{createHTML:e=
         filter: drop-shadow(0 0 6px var(--nabu-eyes-border-color))
           drop-shadow(
             0 0 var(--nabu-eyes-glow-radius)
-              var(--nabu-eyes-glow-color-sepia, rgba(255, 210, 0, 0.2))
+              var(--nabu-eyes-glow-color-sepia, rgba(255, 208, 0, 0.5))
           );
       }
     `}}Te.properties={hass:{attribute:!1},_config:{state:!0},_countdownActive:{state:!0},_alarmActive:{state:!0}};const ze="nabu-eyes-dashboard-card";if(customElements.get(ze)||customElements.define(ze,Te),"undefined"!=typeof window){window.customCards=window.customCards??[];window.customCards.some(e=>e.type===ze)||window.customCards.push({type:ze,name:"Nabu Eyes Dashboard",description:"Animated Assist avatar with media and alarm indicators.",preview:!0})}export{Te as NabuEyesDashboardCard};
