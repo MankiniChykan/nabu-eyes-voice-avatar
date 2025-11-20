@@ -117,10 +117,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
       // Glow defaults (shared radius, per-variant colours)
       glow_radius: 40,
-      glow_color_blue: 'rgba(0, 21, 255, 0.2)',
-      glow_color_light: 'rgba(0, 255, 255, 0.2)',
-      glow_color_purple: 'rgba(255, 0, 255, 0.2)',
-      glow_color_sepia: 'rgba(255, 210, 0, 0.2)',
+      glow_color_blue: 'rgba(0, 21, 255, 0.5)',
+      glow_color_light: 'rgba(0, 255, 255, 0.5)',
+      glow_color_purple: 'rgba(255, 0, 255, 0.5)',
+      glow_color_sepia: 'rgba(255, 210, 0, 0.5)',
 
       // Vertical padding default
       avatar_padding_vertical: 0,
@@ -310,10 +310,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const overlay = this._config.fullscreen_overlay ?? false;
 
     const {
-      glow_color_blue = 'rgba(0, 21, 255, 0.2)',
-      glow_color_light = 'rgba(0, 255, 255, 0.2)',
-      glow_color_purple = 'rgba(255, 0, 255, 0.2)',
-      glow_color_sepia = 'rgba(255, 210, 0, 0.2)',
+      glow_color_blue = 'rgba(0, 21, 255, 0.5)',
+      glow_color_light = 'rgba(0, 255, 255, 0.5)',
+      glow_color_purple = 'rgba(255, 0, 255, 0.5)',
+      glow_color_sepia = 'rgba(255, 210, 0, 0.5)',
     } = this._config;
 
     const styleVars = [
