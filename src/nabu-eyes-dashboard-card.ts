@@ -210,7 +210,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         this._eventUnsubscribes.push(unsubscribe);
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.warn(`nabu-eyes-dashboard-card: failed to subscribe to event ${type}`, err);
+        this._logError(`nabu-eyes-dashboard-card: failed to subscribe to event ${type}`, err);
       }
     }
   }
@@ -461,6 +461,12 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return undefined;
   }
 
+    /** Centralised logging so all errors are easy to grep in the console */
+  private _logError(message: string, error?: unknown): void {
+    // eslint-disable-next-line no-console
+    console.error('nabu-eyes-dashboard-card:', message, error ?? '');
+  }
+
   static get styles(): CSSResultGroup {
     return css`
       :host {
@@ -548,13 +554,29 @@ type CustomCardDefinition = {
 declare global {
   interface Window {
     customCards?: CustomCardDefinition[];
+    __NABU_EYES_DASHBOARD_CARD_VERSION__?: string;
   }
 }
 
 const CARD_TAG = 'nabu-eyes-dashboard-card';
 
+const CARD_VERSION =
+  typeof window !== 'undefined' && window.__NABU_EYES_DASHBOARD_CARD_VERSION__
+    ? window.__NABU_EYES_DASHBOARD_CARD_VERSION__
+    : 'dev';
+
 if (!customElements.get(CARD_TAG)) {
   customElements.define(CARD_TAG, NabuEyesDashboardCard);
+
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line no-console
+    console.info(
+      '%cNABU-EYES-DASHBOARD-CARD%c ' + CARD_VERSION + ' %cIS INSTALLED',
+      'color:#03a9f4;font-weight:bold;',
+      'color:#e0e0e0;font-weight:bold;',
+      'color:#4caf50;font-weight:bold;',
+    );
+  }
 }
 
 if (typeof window !== 'undefined') {
