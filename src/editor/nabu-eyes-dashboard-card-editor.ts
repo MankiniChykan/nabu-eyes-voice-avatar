@@ -39,10 +39,12 @@ const idleVariantOptions = Object.entries(STATE_VARIANTS.idle).map(([value, labe
   label,
 }));
 
-const listeningVariantOptions = Object.entries(STATE_VARIANTS.listening).map(([value, label]) => ({
-  value,
-  label,
-}));
+const listeningVariantOptions = Object.entries(STATE_VARIANTS.listening).map(
+  ([value, label]) => ({
+    value,
+    label,
+  }),
+);
 
 const processingVariantOptions = Object.entries(STATE_VARIANTS.processing).map(
   ([value, label]) => ({ value, label }),
@@ -57,17 +59,19 @@ const alarmVariantOptions = Object.entries(STATE_VARIANTS.alarm).map(([value, la
   label,
 }));
 
-const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(([value, label]) => ({
-  value,
-  label,
-}));
+const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(
+  ([value, label]) => ({
+    value,
+    label,
+  }),
+);
 
 const muteVariantOptions = Object.entries(STATE_VARIANTS.mute).map(([value, label]) => ({
   value,
   label,
 }));
 
-// This is the built-in form schema – Home Assistant renders all controls
+// Built-in form schema – HA renders all controls except glow colour pickers
 const SCHEMA: HaFormSchema[] = [
   {
     name: 'name',
@@ -78,7 +82,7 @@ const SCHEMA: HaFormSchema[] = [
     selector: {
       entity: {
         domain: 'assist_satellite',
-        multiple: true, // this is the important part – array of satellites
+        multiple: true, // array of satellites
       },
     },
   },
@@ -220,7 +224,7 @@ const SCHEMA: HaFormSchema[] = [
       text: { multiline: true },
     },
   },
-  // Glow & layout
+  // Glow & layout – radius + padding stay in ha-form; colours handled manually below
   {
     name: 'glow_radius',
     selector: {
@@ -239,30 +243,6 @@ const SCHEMA: HaFormSchema[] = [
         max: 200,
         mode: 'box',
       },
-    },
-  },
-  {
-    name: 'glow_color_blue',
-    selector: {
-      text: {},
-    },
-  },
-  {
-    name: 'glow_color_light',
-    selector: {
-      text: {},
-    },
-  },
-  {
-    name: 'glow_color_purple',
-    selector: {
-      text: {},
-    },
-  },
-  {
-    name: 'glow_color_sepia',
-    selector: {
-      text: {},
     },
   },
 ];
@@ -339,16 +319,65 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       }
     }
 
+    const cfg = this._config;
+
+    const blue = this._rgbaToHexAlpha(cfg.glow_color_blue ?? DEFAULT_GLOW_BLUE, DEFAULT_GLOW_BLUE);
+    const light = this._rgbaToHexAlpha(
+      cfg.glow_color_light ?? DEFAULT_GLOW_LIGHT,
+      DEFAULT_GLOW_LIGHT,
+    );
+    const purple = this._rgbaToHexAlpha(
+      cfg.glow_color_purple ?? DEFAULT_GLOW_PURPLE,
+      DEFAULT_GLOW_PURPLE,
+    );
+    const sepia = this._rgbaToHexAlpha(
+      cfg.glow_color_sepia ?? DEFAULT_GLOW_SEPIA,
+      DEFAULT_GLOW_SEPIA,
+    );
+
     return html`
       <div class="form">
         <ha-form
           .hass=${this.hass}
-          .data=${this._config}
+          .data=${cfg}
           .schema=${SCHEMA}
           .computeLabel=${this._computeLabel}
           .computeHelper=${this._computeHelper}
           @value-changed=${this._valueChanged}
         ></ha-form>
+
+        <!-- Legacy RGBA colour pickers with alpha channel -->
+        <h3 class="section-heading">Variant Glow Colours (RGBA)</h3>
+
+        ${this._glowRow('Blue Glow', 'glow_color_blue', blue.hex, blue.alpha, DEFAULT_GLOW_BLUE)}
+        ${this._glowRow(
+          'Light Glow',
+          'glow_color_light',
+          light.hex,
+          light.alpha,
+          DEFAULT_GLOW_LIGHT,
+        )}
+        ${this._glowRow(
+          'Purple Glow',
+          'glow_color_purple',
+          purple.hex,
+          purple.alpha,
+          DEFAULT_GLOW_PURPLE,
+        )}
+        ${this._glowRow(
+          'Sepia Glow',
+          'glow_color_sepia',
+          sepia.hex,
+          sepia.alpha,
+          DEFAULT_GLOW_SEPIA,
+        )}
+
+        <div class="glow-reset-row">
+          <span class="glow-reset-heading">Reset Glow Colours</span>
+          <mwc-button class="glow-reset-button" @click=${this._resetGlowColours}>
+            Reset glow colours
+          </mwc-button>
+        </div>
       </div>
     `;
   }
@@ -377,6 +406,134 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
     this._config = raw;
     fireEvent(this, 'config-changed', { config: raw });
+  }
+
+  private _resetGlowColours = (): void => {
+    if (!this._config) return;
+
+    const next: NabuEyesDashboardCardConfig = {
+      ...this._config,
+      glow_color_blue: DEFAULT_GLOW_BLUE,
+      glow_color_light: DEFAULT_GLOW_LIGHT,
+      glow_color_purple: DEFAULT_GLOW_PURPLE,
+      glow_color_sepia: DEFAULT_GLOW_SEPIA,
+    };
+
+    this._config = next;
+    fireEvent(this, 'config-changed', { config: next });
+  };
+
+  private _glowRow(
+    label: string,
+    field: 'glow_color_blue' | 'glow_color_light' | 'glow_color_purple' | 'glow_color_sepia',
+    hex: string,
+    alpha: number,
+    fallback: string,
+  ): TemplateResult {
+    return html`
+      <div class="color-row">
+        <div class="color-label">${label}</div>
+        <input
+          type="color"
+          class="color-input"
+          .value=${hex}
+          @input=${(e: Event) => {
+            const target = e.currentTarget as HTMLInputElement;
+            const current = (this._config && (this._config as any)[field]) || fallback;
+            const parsed = this._rgbaToHexAlpha(current as string, fallback);
+            const rgba = this._rgbaFromHexAlpha(target.value, parsed.alpha);
+            this._update(field, rgba as any);
+          }}
+        />
+        <ha-textfield
+          class="alpha-input"
+          label="α"
+          type="number"
+          min="0"
+          max="1"
+          step="0.05"
+          .value=${String(alpha)}
+          @input=${(e: Event) => {
+            const t = e.currentTarget as HTMLInputElement;
+            const val = Number(t.value);
+            if (Number.isNaN(val)) return;
+            const clamped = Math.min(1, Math.max(0, val));
+            const current = (this._config && (this._config as any)[field]) || fallback;
+            const parsed = this._rgbaToHexAlpha(current as string, fallback);
+            const rgba = this._rgbaFromHexAlpha(parsed.hex, clamped);
+            this._update(field, rgba as any);
+          }}
+        ></ha-textfield>
+      </div>
+    `;
+  }
+
+  // ---- Helpers for RGBA <-> hex+alpha ----
+  private _rgbaToHexAlpha(value: string, fallback: string): { hex: string; alpha: number } {
+    const src = (value || fallback).trim();
+    const rgbaMatch = src.match(
+      /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([0-9.]+))?\s*\)$/i,
+    );
+    if (rgbaMatch) {
+      const r = Number(rgbaMatch[1]);
+      const g = Number(rgbaMatch[2]);
+      const b = Number(rgbaMatch[3]);
+      const a = rgbaMatch[4] !== undefined ? Number(rgbaMatch[4]) : 1;
+      const hex =
+        '#' +
+        [r, g, b]
+          .map((n) => {
+            const clamped = Math.min(255, Math.max(0, Math.round(n)));
+            const s = clamped.toString(16);
+            return s.length === 1 ? `0${s}` : s;
+          })
+          .join('');
+      return { hex, alpha: Math.min(1, Math.max(0, isNaN(a) ? 1 : a)) };
+    }
+
+    if (src.startsWith('#')) {
+      let hex = src;
+      if (hex.length === 4) {
+        const r = hex[1];
+        const g = hex[2];
+        const b = hex[3];
+        hex = `#${r}${r}${g}${g}${b}${b}`;
+      }
+      if (hex.length === 7) {
+        return { hex, alpha: 1 };
+      }
+    }
+
+    // Fallback to default
+    return this._rgbaToHexAlpha(fallback, fallback);
+  }
+
+  private _rgbaFromHexAlpha(hex: string, alpha: number): string {
+    let h = hex.trim();
+    if (!h.startsWith('#')) h = `#${h}`;
+    if (h.length === 4) {
+      const r = h[1];
+      const g = h[2];
+      const b = h[3];
+      h = `#${r}${r}${g}${g}${b}${b}`;
+    }
+    if (h.length !== 7) return DEFAULT_GLOW_BLUE;
+
+    const r = parseInt(h.slice(1, 3), 16);
+    const g = parseInt(h.slice(3, 5), 16);
+    const b = parseInt(h.slice(5, 7), 16);
+    const a = Math.min(1, Math.max(0, alpha));
+    return `rgba(${r}, ${g}, ${b}, ${a})`;
+  }
+
+  private _update<K extends keyof NabuEyesDashboardCardConfig>(
+    field: K,
+    value: NabuEyesDashboardCardConfig[K],
+  ): void {
+    if (!this._config) return;
+    const next: NabuEyesDashboardCardConfig = { ...this._config, [field]: value };
+    this._config = next;
+    fireEvent(this, 'config-changed', { config: next });
   }
 
   private _computeLabel = (schema: HaFormSchema): string => {
@@ -427,14 +584,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'Glow radius (px)';
       case 'avatar_padding_vertical':
         return 'Vertical padding (px)';
-      case 'glow_color_blue':
-        return 'Blue glow colour (rgba)';
-      case 'glow_color_light':
-        return 'Light glow colour (rgba)';
-      case 'glow_color_purple':
-        return 'Purple glow colour (rgba)';
-      case 'glow_color_sepia':
-        return 'Sepia glow colour (rgba)';
       default:
         return schema.name;
     }
@@ -461,8 +610,56 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       .form {
         display: block;
       }
+
       ha-form {
         --ha-form-label-width: 180px;
+      }
+
+      .section-heading {
+        margin-top: 16px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0.8;
+      }
+
+      .color-row {
+        display: grid;
+        grid-template-columns: 2fr auto 80px;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .color-label {
+        font-size: 13px;
+      }
+
+      .color-input {
+        width: 40px;
+        height: 24px;
+        padding: 0;
+        border: none;
+        background: transparent;
+      }
+
+      .alpha-input {
+        --mdc-text-field-outlined-hover-border-color: transparent;
+      }
+
+      .glow-reset-row {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .glow-reset-heading {
+        font-size: 13px;
+        opacity: 0.8;
+      }
+
+      .glow-reset-button {
+        --mdc-theme-primary: #f44336;
       }
     `;
   }
