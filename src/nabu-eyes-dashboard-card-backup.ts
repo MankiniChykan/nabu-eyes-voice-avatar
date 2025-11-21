@@ -15,7 +15,7 @@ import {
   PLAYING_VARIANTS,
   STATE_ASSET_MAP,
 } from './const';
-import './editor/nabu-eyes-dashboard-card-editor';
+import './editor/nabu-eyes-dashboard-card-editor-backup';
 
 export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   name?: string;
