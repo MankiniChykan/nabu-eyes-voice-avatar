@@ -461,7 +461,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return undefined;
   }
 
-    /** Centralised logging so all errors are easy to grep in the console */
+  /** Centralised logging so all errors are easy to grep in the console */
   private _logError(message: string, error?: unknown): void {
     // eslint-disable-next-line no-console
     console.error('nabu-eyes-dashboard-card:', message, error ?? '');
