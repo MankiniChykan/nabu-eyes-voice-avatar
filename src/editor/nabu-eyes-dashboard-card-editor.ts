@@ -10,7 +10,7 @@ import {
   STATE_ASSET_MAP,
   STATE_VARIANTS,
 } from '../const';
-import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card';
+import { NabuEyesDashboardCardConfig } from '../nabu-eyes-dashboard-card-backup';
 
 type HaSelectElement = HTMLElement & { value?: string };
 type HaSwitchElement = HTMLElement & { checked?: boolean };
