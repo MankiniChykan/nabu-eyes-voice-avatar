@@ -39,9 +39,10 @@ const idleVariantOptions = Object.entries(STATE_VARIANTS.idle).map(([value, labe
   label,
 }));
 
-const listeningVariantOptions = Object.entries(STATE_VARIANTS.listening).map(
-  ([value, label]) => ({ value, label }),
-);
+const listeningVariantOptions = Object.entries(STATE_VARIANTS.listening).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const processingVariantOptions = Object.entries(STATE_VARIANTS.processing).map(
   ([value, label]) => ({ value, label }),
@@ -56,9 +57,10 @@ const alarmVariantOptions = Object.entries(STATE_VARIANTS.alarm).map(([value, la
   label,
 }));
 
-const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(
-  ([value, label]) => ({ value, label }),
-);
+const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const muteVariantOptions = Object.entries(STATE_VARIANTS.mute).map(([value, label]) => ({
   value,
