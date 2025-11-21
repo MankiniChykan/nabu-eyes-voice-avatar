@@ -370,7 +370,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
         <div class="glow-reset-row">
           <span class="glow-reset-heading">Reset Glow Colours</span>
-          <mwc-button class="glow-reset-button" @click=${this._resetGlowColours}>
+          <mwc-button class="glow-reset-button" raised @click=${this._resetGlowColours}>
             Reset glow colours
           </mwc-button>
         </div>
@@ -656,6 +656,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
       .glow-reset-button {
         --mdc-theme-primary: #f44336;
+        --mdc-theme-on-primary: #ffffff;
       }
     `;
   }
