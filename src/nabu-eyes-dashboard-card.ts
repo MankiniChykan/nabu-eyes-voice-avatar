@@ -52,6 +52,9 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
 
   // Overlay mode: show centered over rest of dashboard
   fullscreen_overlay?: boolean;
+
+  // Idle dwell: delay before showing idle after another state
+  idle_dwell_seconds?: number;
 }
 
 type NabuEyesAssistState = 'idle' | 'listening' | 'processing' | 'responding' | 'playing';
@@ -80,11 +83,17 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   private _countdownActive = false;
   private _alarmActive = false;
 
+  private _lastAssistState?: NabuEyesAssistState;
+  private _idleDwellUntil = 0;
+  private _idleDwellLastNonIdle?: NabuEyesAssistState;
+  private _idleDwellTimeout?: number;
+
   public static properties = {
     hass: { attribute: false },
     _config: { state: true },
     _countdownActive: { state: true },
     _alarmActive: { state: true },
+    
   } as const;
 
   private _eventUnsubscribes: UnsubscribeFunc[] = [];
@@ -107,6 +116,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     const normalizedConfig: NabuEyesDashboardCardConfig = {
       hide_when_idle: false,
+      idle_dwell_seconds: 0,
       playing_variant: DEFAULT_PLAYING_VARIANT,
       media_player_equalizer: DEFAULT_EQUALIZER_VARIANT,
       countdown_events: [],
@@ -183,6 +193,10 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   public disconnectedCallback(): void {
     super.disconnectedCallback();
     this._unsubscribeFromEvents();
+    if (this._idleDwellTimeout) {
+      window.clearTimeout(this._idleDwellTimeout);
+      this._idleDwellTimeout = undefined;
+    }
   }
 
   protected updated(changedProps: Map<string | number | symbol, unknown>): void {
@@ -449,16 +463,74 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         ? configured
         : Object.keys(this.hass.states).filter((eid) => eid.startsWith('assist_satellite.'));
 
-    if (sourceIds.length === 0) return undefined;
+    if (sourceIds.length === 0) {
+      this._lastAssistState = undefined;
+      this._resetIdleDwell();
+      return undefined;
+    }
 
     const states = sourceIds
       .map((entityId) => this.hass.states[entityId]?.state)
       .filter((state): state is string => typeof state === 'string');
 
+    let raw: NabuEyesAssistState | undefined;
     for (const desired of ASSIST_STATE_PRIORITY) {
-      if (states.includes(desired)) return desired;
+      if (states.includes(desired)) {
+        raw = desired;
+        break;
+      }
     }
-    return undefined;
+
+    const dwellSeconds = this._config?.idle_dwell_seconds ?? 0;
+    const now = Date.now();
+
+    if (raw !== this._lastAssistState) {
+      // State transition
+      if (
+        raw === 'idle' &&
+        this._lastAssistState &&
+        this._lastAssistState !== 'idle' &&
+        dwellSeconds > 0
+      ) {
+        this._idleDwellLastNonIdle = this._lastAssistState;
+        this._idleDwellUntil = now + dwellSeconds * 1000;
+
+        if (this._idleDwellTimeout) {
+          window.clearTimeout(this._idleDwellTimeout);
+        }
+        this._idleDwellTimeout = window.setTimeout(() => {
+          this._idleDwellUntil = 0;
+          this.requestUpdate();
+        }, dwellSeconds * 1000);
+      } else {
+        if (raw && raw !== 'idle') {
+          this._idleDwellLastNonIdle = raw;
+        }
+        this._resetIdleDwell();
+      }
+
+      this._lastAssistState = raw;
+    }
+
+    if (
+      raw === 'idle' &&
+      dwellSeconds > 0 &&
+      this._idleDwellUntil > now &&
+      this._idleDwellLastNonIdle
+    ) {
+      // Still within dwell window: keep showing last non-idle state
+      return this._idleDwellLastNonIdle;
+    }
+
+    return raw;
+  }
+
+    private _resetIdleDwell(): void {
+    this._idleDwellUntil = 0;
+    if (this._idleDwellTimeout) {
+      window.clearTimeout(this._idleDwellTimeout);
+      this._idleDwellTimeout = undefined;
+    }
   }
 
   /** Centralised logging so all errors are easy to grep in the console */

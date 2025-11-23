@@ -127,6 +127,16 @@ const SCHEMA: HaFormSchema[] = [
     },
   },
   {
+    name: 'idle_dwell_seconds',
+    selector: {
+      number: {
+        min: 0,
+        max: 600,
+        mode: 'box',
+      },
+    },
+  },
+  {
     name: 'fullscreen_overlay',
     selector: {
       boolean: {},
@@ -264,6 +274,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       alarm_entities: [...(config.alarm_entities ?? [])],
       alarm_active_states: [...(config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES)],
       hide_when_idle: config.hide_when_idle ?? false,
+      idle_dwell_seconds: config.idle_dwell_seconds ?? 0,
 
       glow_radius: config.glow_radius ?? 40,
       avatar_padding_vertical: config.avatar_padding_vertical ?? 0,
@@ -550,6 +561,8 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'Asset path';
       case 'hide_when_idle':
         return 'Hide when idle';
+      case 'idle_dwell_seconds':
+        return 'Idle dwell time (seconds)';
       case 'fullscreen_overlay':
         return 'Overlay on top (centered)';
       case 'state_idle_variant':
@@ -596,6 +609,8 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'One event type per line or comma separated';
       case 'alarm_active_states':
         return 'One state per line or comma separated';
+      case 'idle_dwell_seconds':
+        return 'Delay before the avatar switches to idle after another state';
       default:
         return undefined;
     }
