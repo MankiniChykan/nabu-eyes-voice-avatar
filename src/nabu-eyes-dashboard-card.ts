@@ -93,7 +93,6 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     _config: { state: true },
     _countdownActive: { state: true },
     _alarmActive: { state: true },
-    
   } as const;
 
   private _eventUnsubscribes: UnsubscribeFunc[] = [];
@@ -525,7 +524,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return raw;
   }
 
-    private _resetIdleDwell(): void {
+  private _resetIdleDwell(): void {
     this._idleDwellUntil = 0;
     if (this._idleDwellTimeout) {
       window.clearTimeout(this._idleDwellTimeout);
