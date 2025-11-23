@@ -274,7 +274,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       alarm_entities: [...(config.alarm_entities ?? [])],
       alarm_active_states: [...(config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES)],
       hide_when_idle: config.hide_when_idle ?? false,
-      idle_dwell_seconds: config.idle_dwell_seconds ?? 0,
+      idle_dwell_seconds: config.idle_dwell_seconds ?? 30,
 
       glow_radius: config.glow_radius ?? 40,
       avatar_padding_vertical: config.avatar_padding_vertical ?? 0,
@@ -610,7 +610,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       case 'alarm_active_states':
         return 'One state per line or comma separated';
       case 'idle_dwell_seconds':
-        return 'Delay before the avatar switches to idle after another state';
+        return "How long to keep idle visible before hiding when 'Hide when idle' is enabled";
       default:
         return undefined;
     }

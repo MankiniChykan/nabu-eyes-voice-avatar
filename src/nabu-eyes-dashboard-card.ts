@@ -53,7 +53,7 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   // Overlay mode: show centered over rest of dashboard
   fullscreen_overlay?: boolean;
 
-  // Idle dwell: delay before showing idle after another state
+  // Idle dwell: keep idle visible before hiding when hide_when_idle is true
   idle_dwell_seconds?: number;
 }
 
@@ -84,8 +84,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   private _alarmActive = false;
 
   private _lastAssistState?: NabuEyesAssistState;
-  private _idleDwellUntil = 0;
-  private _idleDwellLastNonIdle?: NabuEyesAssistState;
+  private _idleDwellUntil: number | null = null;
   private _idleDwellTimeout?: number;
 
   public static properties = {
@@ -115,7 +114,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     const normalizedConfig: NabuEyesDashboardCardConfig = {
       hide_when_idle: false,
-      idle_dwell_seconds: 0,
+      idle_dwell_seconds: 30,
       playing_variant: DEFAULT_PLAYING_VARIANT,
       media_player_equalizer: DEFAULT_EQUALIZER_VARIANT,
       countdown_events: [],
@@ -192,10 +191,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   public disconnectedCallback(): void {
     super.disconnectedCallback();
     this._unsubscribeFromEvents();
-    if (this._idleDwellTimeout) {
-      window.clearTimeout(this._idleDwellTimeout);
-      this._idleDwellTimeout = undefined;
-    }
+    this._resetIdleDwell();
   }
 
   protected updated(changedProps: Map<string | number | symbol, unknown>): void {
@@ -363,6 +359,38 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       };
     };
 
+    const assistState = this._computeAssistState();
+    const now = Date.now();
+    const dwellSeconds = this._config.idle_dwell_seconds ?? 30;
+    const prevAssist = this._lastAssistState;
+    this._lastAssistState = assistState;
+
+    // Maintain idle dwell window based on assist state transitions
+    if (assistState && assistState !== 'idle') {
+      // Any active state cancels idle dwell
+      this._resetIdleDwell();
+    } else if (assistState === 'idle' && this._config.hide_when_idle && dwellSeconds > 0) {
+      if (prevAssist && prevAssist !== 'idle' && this._idleDwellUntil === null) {
+        // Just transitioned active → idle: start dwell window
+        const until = now + dwellSeconds * 1000;
+        this._idleDwellUntil = until;
+        this._scheduleIdleDwellTimeout(dwellSeconds * 1000);
+      } else if (this._idleDwellUntil !== null && now >= this._idleDwellUntil) {
+        // Dwell window expired
+        this._idleDwellUntil = null;
+      }
+    } else if (!assistState) {
+      // No assist state at all – reset dwell
+      this._resetIdleDwell();
+    }
+
+    const inIdleDwell =
+      assistState === 'idle' &&
+      this._config.hide_when_idle &&
+      dwellSeconds > 0 &&
+      this._idleDwellUntil !== null &&
+      now < this._idleDwellUntil;
+
     const alarmActive = this._alarmActive || this._isAlarmEntityActive();
     if (alarmActive) {
       return choose('alarm');
@@ -371,8 +399,6 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     if (this._countdownActive) {
       return choose('countdown');
     }
-
-    const assistState = this._computeAssistState();
 
     if (assistState === 'playing') {
       return choose('playing');
@@ -388,14 +414,26 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const muteAsset = this._determineMuteAsset(basePath);
     if (muteAsset) return muteAsset;
 
-    // Idle / fallback idle (with glow)
+    // Idle / fallback idle (with glow + dwell)
     if (assistState === 'idle') {
-      if (this._config.hide_when_idle) return undefined;
+      if (this._config.hide_when_idle && !inIdleDwell) return undefined;
       return choose('idle');
     }
 
     if (this._config.hide_when_idle) return undefined;
     return choose('idle');
+  }
+
+  private _scheduleIdleDwellTimeout(durationMs: number): void {
+    if (this._idleDwellTimeout) {
+      window.clearTimeout(this._idleDwellTimeout);
+      this._idleDwellTimeout = undefined;
+    }
+    if (durationMs <= 0) return;
+    this._idleDwellTimeout = window.setTimeout(() => {
+      this._idleDwellTimeout = undefined;
+      this.requestUpdate();
+    }, durationMs);
   }
 
   private _determineMediaPlayerAsset(basePath: string): AssetDescriptor | undefined {
@@ -463,8 +501,6 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         : Object.keys(this.hass.states).filter((eid) => eid.startsWith('assist_satellite.'));
 
     if (sourceIds.length === 0) {
-      this._lastAssistState = undefined;
-      this._resetIdleDwell();
       return undefined;
     }
 
@@ -472,60 +508,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       .map((entityId) => this.hass.states[entityId]?.state)
       .filter((state): state is string => typeof state === 'string');
 
-    let raw: NabuEyesAssistState | undefined;
     for (const desired of ASSIST_STATE_PRIORITY) {
       if (states.includes(desired)) {
-        raw = desired;
-        break;
+        return desired;
       }
     }
-
-    const dwellSeconds = this._config?.idle_dwell_seconds ?? 0;
-    const now = Date.now();
-
-    if (raw !== this._lastAssistState) {
-      // State transition
-      if (
-        raw === 'idle' &&
-        this._lastAssistState &&
-        this._lastAssistState !== 'idle' &&
-        dwellSeconds > 0
-      ) {
-        this._idleDwellLastNonIdle = this._lastAssistState;
-        this._idleDwellUntil = now + dwellSeconds * 1000;
-
-        if (this._idleDwellTimeout) {
-          window.clearTimeout(this._idleDwellTimeout);
-        }
-        this._idleDwellTimeout = window.setTimeout(() => {
-          this._idleDwellUntil = 0;
-          this.requestUpdate();
-        }, dwellSeconds * 1000);
-      } else {
-        if (raw && raw !== 'idle') {
-          this._idleDwellLastNonIdle = raw;
-        }
-        this._resetIdleDwell();
-      }
-
-      this._lastAssistState = raw;
-    }
-
-    if (
-      raw === 'idle' &&
-      dwellSeconds > 0 &&
-      this._idleDwellUntil > now &&
-      this._idleDwellLastNonIdle
-    ) {
-      // Still within dwell window: keep showing last non-idle state
-      return this._idleDwellLastNonIdle;
-    }
-
-    return raw;
+    return undefined;
   }
 
   private _resetIdleDwell(): void {
-    this._idleDwellUntil = 0;
+    this._idleDwellUntil = null;
     if (this._idleDwellTimeout) {
       window.clearTimeout(this._idleDwellTimeout);
       this._idleDwellTimeout = undefined;
