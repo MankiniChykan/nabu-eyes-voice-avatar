@@ -43,6 +43,17 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   // Dedicated doorbell → alarm/doorbell variant trigger
   doorbell_entity?: string;
 
+  // Timer integration
+  timer_mode?: 'all' | 'custom' | 'off'; // All timers, only selected timers, or disabled
+  timer_entities?: string[];
+
+  // Per-event behaviour: ON = Nabu Countdown, OFF = Nabu Idle
+  timer_event_started?: 'on' | 'off';
+  timer_event_restarted?: 'on' | 'off';
+  timer_event_paused?: 'on' | 'off';
+  timer_event_cancelled?: 'on' | 'off';
+  timer_event_finished?: 'on' | 'off';
+
   // Glow controls (one radius, four colour variants)
   glow_radius?: number; // px
   glow_color_blue?: string;
@@ -139,6 +150,14 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       // Overlay off by default
       fullscreen_overlay: false,
 
+      // Timer defaults
+      timer_mode: 'all',
+      timer_event_started: 'on',
+      timer_event_restarted: 'on',
+      timer_event_paused: 'off',
+      timer_event_cancelled: 'off',
+      timer_event_finished: 'off',
+
       ...config,
       assist_entities: Array.isArray((config as NabuEyesDashboardCardConfig).assist_entities)
         ? [...((config as NabuEyesDashboardCardConfig).assist_entities ?? [])]
@@ -161,6 +180,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       normalizedConfig.alarm_active_states?.length
         ? normalizedConfig.alarm_active_states
         : [...DEFAULT_ALARM_ACTIVE_STATES],
+    );
+    normalizedConfig.timer_entities = this._normalizeStringArray(
+      normalizedConfig.timer_entities ?? [],
     );
 
     const assetPath = normalizedConfig.asset_path?.trim();
@@ -211,6 +233,16 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       ...(this._config.alarm_events ?? []),
       ...(this._config.alarm_clear_events ?? []),
     ]);
+
+    // Timer integration – subscribe to core timer events when not disabled
+    if (this._config.timer_mode && this._config.timer_mode !== 'off') {
+      eventTypes.add('timer.started');
+      eventTypes.add('timer.restarted');
+      eventTypes.add('timer.paused');
+      eventTypes.add('timer.cancelled');
+      eventTypes.add('timer.finished');
+    }
+
     if (eventTypes.size === 0) return;
 
     for (const type of eventTypes) {
@@ -234,6 +266,25 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     }
   }
 
+  private _isRelevantTimerEvent(eventType: string, data: Record<string, unknown>): boolean {
+    if (!this._config || !this.hass) return false;
+    if (!eventType.startsWith('timer.')) return false;
+
+    const mode = this._config.timer_mode ?? 'all';
+    if (mode === 'off') return false;
+
+    const entityId = (data.entity_id as string | undefined) ?? '';
+    if (!entityId.startsWith('timer.')) return false;
+
+    if (mode === 'all') {
+      return true;
+    }
+
+    const timers = this._config.timer_entities ?? [];
+    if (!timers.length) return true; // treat as "all" if custom list empty
+    return timers.includes(entityId);
+  }
+
   private _handleEvent(
     expectedType: string,
     eventType: string,
@@ -241,6 +292,40 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   ): void {
     if (!this._config || eventType !== expectedType) return;
 
+    // Timer events → Nabu countdown vs idle
+    if (eventType.startsWith('timer.') && this._isRelevantTimerEvent(eventType, eventData)) {
+      const cfg = this._config;
+
+      const setFrom = (flag: 'on' | 'off' | undefined) => {
+        if (!flag) return;
+        this._countdownActive = flag === 'on';
+      };
+
+      switch (eventType) {
+        case 'timer.started':
+          setFrom(cfg.timer_event_started ?? 'on');
+          break;
+        case 'timer.restarted':
+          setFrom(cfg.timer_event_restarted ?? 'on');
+          break;
+        case 'timer.paused':
+          setFrom(cfg.timer_event_paused ?? 'off');
+          break;
+        case 'timer.cancelled':
+          setFrom(cfg.timer_event_cancelled ?? 'off');
+          break;
+        case 'timer.finished':
+          setFrom(cfg.timer_event_finished ?? 'off');
+          break;
+        default:
+          break;
+      }
+
+      this.requestUpdate();
+      return;
+    }
+
+    // Custom countdown / alarm events (existing logic)
     const {
       countdown_events = [],
       countdown_clear_events = [],
@@ -312,6 +397,9 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   protected render(): TemplateResult {
     if (!this._config) return html``;
 
+    // Sync countdownActive with current timer states as a backstop (state.active / idle / paused)
+    this._updateCountdownFromTimers();
+
     const asset = this._determineAsset();
     if (!asset) return html``;
 
@@ -339,9 +427,15 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     const containerClass = overlay ? 'avatar-container overlay' : 'avatar-container';
 
+    const countdownLabel =
+      this._countdownActive && (this._config.timer_mode ?? 'all') !== 'off'
+        ? this._computeTimerCountdown()
+        : null;
+
     return html`
       <div class="${containerClass}" style=${styleVars}>
         <img class="avatar ${glowClass}" src="${src}" alt="Nabu Eyes state" />
+        ${countdownLabel ? html`<div class="countdown-overlay">${countdownLabel}</div>` : null}
       </div>
     `;
   }
@@ -526,6 +620,90 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     return undefined;
   }
 
+  private _updateCountdownFromTimers(): void {
+    if (!this.hass || !this._config) return;
+    const mode = this._config.timer_mode ?? 'all';
+    if (mode === 'off') return;
+
+    const candidateIds =
+      mode === 'custom' && (this._config.timer_entities?.length ?? 0) > 0
+        ? this._config.timer_entities!
+        : Object.keys(this.hass.states).filter((id) => id.startsWith('timer.'));
+
+    if (!candidateIds.length) return;
+
+    const states = candidateIds
+      .map((id) => this.hass!.states[id])
+      .filter((s): s is typeof this.hass.states[string] => !!s);
+
+    if (!states.length) return;
+
+    const hasActive = states.some((s) => s.state === 'active');
+    if (hasActive) {
+      this._countdownActive = true;
+      return;
+    }
+
+    // OFF side: idle / paused mapped to Idle
+    const hasIdleOrPaused = states.some((s) => s.state === 'idle' || s.state === 'paused');
+    if (hasIdleOrPaused) {
+      this._countdownActive = false;
+    }
+  }
+
+  private _computeTimerCountdown(): string | null {
+    if (!this.hass || !this._config) return null;
+    const mode = this._config.timer_mode ?? 'all';
+    if (mode === 'off') return null;
+
+    const candidateIds =
+      mode === 'custom' && (this._config.timer_entities?.length ?? 0) > 0
+        ? this._config.timer_entities!
+        : Object.keys(this.hass.states).filter((id) => id.startsWith('timer.'));
+
+    if (!candidateIds.length) return null;
+
+    // Prefer an active timer
+    const activeState = candidateIds
+      .map((id) => this.hass!.states[id])
+      .find((s) => s && s.state === 'active');
+
+    const timerState = activeState ?? null;
+    if (!timerState) return null;
+
+    const remaining = timerState.attributes?.remaining as string | undefined;
+    if (!remaining) return null;
+
+    const totalSeconds = this._parseDurationToSeconds(remaining);
+    if (totalSeconds <= 0) return '00:00:00';
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  }
+
+  private _parseDurationToSeconds(value: string): number {
+    const parts = value.split(':').map((p) => parseInt(p, 10));
+    if (parts.some((n) => Number.isNaN(n))) return 0;
+
+    let h = 0;
+    let m = 0;
+    let s = 0;
+
+    if (parts.length === 3) {
+      [h, m, s] = parts;
+    } else if (parts.length === 2) {
+      [m, s] = parts;
+    } else if (parts.length === 1) {
+      [s] = parts;
+    }
+
+    return h * 3600 + m * 60 + s;
+  }
+
   private _resetIdleDwell(): void {
     this._idleDwellUntil = null;
     if (this._idleDwellTimeout) {
@@ -550,6 +728,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
       }
 
       .avatar-container {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -573,6 +752,18 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
         display: block;
         max-width: 100%;
         height: auto;
+      }
+
+      .countdown-overlay {
+        position: absolute;
+        right: 12px;
+        bottom: 8px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-family: monospace;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
       }
 
       /* One tight black halo around non-transparent pixels + single colour glow per palette */

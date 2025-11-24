@@ -57,10 +57,12 @@ const alarmVariantOptions = Object.entries(STATE_VARIANTS.alarm).map(([value, la
   label,
 }));
 
-const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(([value, label]) => ({
-  value,
-  label,
-}));
+const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(
+  ([value, label]) => ({
+    value,
+    label,
+  }),
+);
 
 const muteVariantOptions = Object.entries(STATE_VARIANTS.mute).map(([value, label]) => ({
   value,
@@ -208,6 +210,89 @@ const SCHEMA: HaFormSchema[] = [
       },
     },
   },
+  // Timer integration
+  {
+    name: 'timer_mode',
+    selector: {
+      select: {
+        mode: 'list',
+        options: [
+          { value: 'all', label: 'All timer entities' },
+          { value: 'custom', label: 'Custom timer entities' },
+          { value: 'off', label: 'Timer integration disabled' },
+        ],
+      },
+    },
+  },
+  {
+    name: 'timer_entities',
+    selector: {
+      entity: {
+        domain: 'timer',
+        multiple: true,
+      },
+    },
+  },
+  {
+    name: 'timer_event_started',
+    selector: {
+      select: {
+        mode: 'list',
+        options: [
+          { value: 'on', label: 'ON (Countdown)' },
+          { value: 'off', label: 'OFF (Idle)' },
+        ],
+      },
+    },
+  },
+  {
+    name: 'timer_event_restarted',
+    selector: {
+      select: {
+        mode: 'list',
+        options: [
+          { value: 'on', label: 'ON (Countdown)' },
+          { value: 'off', label: 'OFF (Idle)' },
+        ],
+      },
+    },
+  },
+  {
+    name: 'timer_event_paused',
+    selector: {
+      select: {
+        mode: 'list',
+        options: [
+          { value: 'on', label: 'ON (Countdown)' },
+          { value: 'off', label: 'OFF (Idle)' },
+        ],
+      },
+    },
+  },
+  {
+    name: 'timer_event_cancelled',
+    selector: {
+      select: {
+        mode: 'list',
+        options: [
+          { value: 'on', label: 'ON (Countdown)' },
+          { value: 'off', label: 'OFF (Idle)' },
+        ],
+      },
+    },
+  },
+  {
+    name: 'timer_event_finished',
+    selector: {
+      select: {
+        mode: 'list',
+        options: [
+          { value: 'on', label: 'ON (Countdown)' },
+          { value: 'off', label: 'OFF (Idle)' },
+        ],
+      },
+    },
+  },
   // Events – edited as multiline text, converted to arrays in _valueChanged
   {
     name: 'countdown_events',
@@ -304,6 +389,15 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       state_alarm_variant: config.state_alarm_variant ?? STATE_ASSET_MAP.alarm,
       state_countdown_variant: config.state_countdown_variant ?? STATE_ASSET_MAP.countdown,
       state_mute_variant: config.state_mute_variant ?? STATE_ASSET_MAP.mute,
+
+      // Timer integration defaults
+      timer_mode: config.timer_mode ?? 'all',
+      timer_entities: [...(config.timer_entities ?? [])],
+      timer_event_started: config.timer_event_started ?? 'on',
+      timer_event_restarted: config.timer_event_restarted ?? 'on',
+      timer_event_paused: config.timer_event_paused ?? 'off',
+      timer_event_cancelled: config.timer_event_cancelled ?? 'off',
+      timer_event_finished: config.timer_event_finished ?? 'off',
     };
   }
 
@@ -327,6 +421,12 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
       if (!this._config.media_player && firstMP) patch.media_player = firstMP;
       if (!this._config.mute_media_player && firstMP) patch.mute_media_player = firstMP;
+
+      // Auto-populate custom timers list if empty
+      if (!this._config.timer_entities?.length) {
+        const timers = Object.keys(this.hass.states).filter((e) => e.startsWith('timer.'));
+        if (timers.length) patch.timer_entities = timers;
+      }
 
       if (Object.keys(patch).length) {
         const merged = { ...this._config, ...patch };
@@ -590,6 +690,20 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'Doorbell entity (triggers Alarm/Doorbell variant)';
       case 'state_alarm_variant':
         return 'Alarm/Doorbell state variant';
+      case 'timer_mode':
+        return 'Timer integration mode';
+      case 'timer_entities':
+        return 'Custom timer entities';
+      case 'timer_event_started':
+        return 'timer.started';
+      case 'timer_event_restarted':
+        return 'timer.restarted';
+      case 'timer_event_paused':
+        return 'timer.paused';
+      case 'timer_event_cancelled':
+        return 'timer.cancelled';
+      case 'timer_event_finished':
+        return 'timer.finished';
       case 'countdown_events':
         return 'Countdown events';
       case 'countdown_clear_events':
@@ -615,6 +729,16 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'Folder containing GIF assets (defaults to HACS path)';
       case 'doorbell_entity':
         return 'Binary_sensor / input_boolean / switch / button used as doorbell; when it enters an alarm-active state, the Alarm/Doorbell animation is shown';
+      case 'timer_mode':
+        return 'Choose whether any timer.* event or only specific timer entities will drive the Nabu countdown';
+      case 'timer_entities':
+        return 'Used when Timer mode is set to Custom';
+      case 'timer_event_started':
+      case 'timer_event_restarted':
+      case 'timer_event_paused':
+      case 'timer_event_cancelled':
+      case 'timer_event_finished':
+        return 'ON = show Countdown variant, OFF = return to Idle';
       case 'countdown_events':
       case 'countdown_clear_events':
       case 'alarm_events':
