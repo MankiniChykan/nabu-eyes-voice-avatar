@@ -176,14 +176,6 @@ const SCHEMA: HaFormSchema[] = [
     },
   },
   {
-    name: 'state_alarm_variant',
-    selector: {
-      select: {
-        options: alarmVariantOptions,
-      },
-    },
-  },
-  {
     name: 'state_countdown_variant',
     selector: {
       select: {
@@ -205,6 +197,14 @@ const SCHEMA: HaFormSchema[] = [
     selector: {
       entity: {
         domain: ['binary_sensor', 'input_boolean', 'switch', 'button'],
+      },
+    },
+  },
+  {
+    name: 'state_alarm_variant',
+    selector: {
+      select: {
+        options: alarmVariantOptions,
       },
     },
   },
@@ -582,14 +582,14 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'Processing state variant';
       case 'state_responding_variant':
         return 'Responding state variant';
-      case 'state_alarm_variant':
-        return 'Alarm/Doorbell state variant';
       case 'state_countdown_variant':
         return 'Countdown state variant';
       case 'state_mute_variant':
         return 'Mute state variant';
       case 'doorbell_entity':
         return 'Doorbell entity (triggers Alarm/Doorbell variant)';
+      case 'state_alarm_variant':
+        return 'Alarm/Doorbell state variant';
       case 'countdown_events':
         return 'Countdown events';
       case 'countdown_clear_events':
