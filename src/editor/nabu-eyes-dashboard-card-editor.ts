@@ -83,6 +83,14 @@ const SCHEMA: HaFormSchema[] = [
     },
   },
   {
+    name: 'playing_variant',
+    selector: {
+      select: {
+        options: playingOptions,
+      },
+    },
+  },
+  {
     name: 'media_player',
     selector: {
       entity: {
@@ -95,14 +103,6 @@ const SCHEMA: HaFormSchema[] = [
     selector: {
       entity: {
         domain: 'media_player',
-      },
-    },
-  },
-  {
-    name: 'playing_variant',
-    selector: {
-      select: {
-        options: playingOptions,
       },
     },
   },
@@ -276,6 +276,7 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     this._config = {
       ...config,
       assist_entities: [...(config.assist_entities ?? [])],
+      playing_variant: config.playing_variant ?? DEFAULT_PLAYING_VARIANT,
       countdown_events: [...(config.countdown_events ?? [])],
       countdown_clear_events: [...(config.countdown_clear_events ?? [])],
       alarm_events: [...(config.alarm_events ?? [])],
@@ -295,7 +296,6 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
 
       fullscreen_overlay: config.fullscreen_overlay ?? false,
       asset_path: config.asset_path ?? DEFAULT_ASSET_PATH,
-      playing_variant: config.playing_variant ?? DEFAULT_PLAYING_VARIANT,
       media_player_equalizer: config.media_player_equalizer ?? DEFAULT_EQUALIZER_VARIANT,
       state_idle_variant: config.state_idle_variant ?? STATE_ASSET_MAP.idle,
       state_listening_variant: config.state_listening_variant ?? STATE_ASSET_MAP.listening,
@@ -558,12 +558,12 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
         return 'Name';
       case 'assist_entities':
         return 'Assist satellite entities';
+      case 'playing_variant':
+        return 'Assist playing animation';
       case 'media_player':
         return 'Media player for equalizer';
       case 'mute_media_player':
         return 'Media player for mute state';
-      case 'playing_variant':
-        return 'Assist playing animation';
       case 'media_player_equalizer':
         return 'Media player equalizer';
       case 'asset_path':
