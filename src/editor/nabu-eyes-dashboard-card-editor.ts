@@ -39,10 +39,12 @@ const idleVariantOptions = Object.entries(STATE_VARIANTS.idle).map(([value, labe
   label,
 }));
 
-const listeningVariantOptions = Object.entries(STATE_VARIANTS.listening).map(([value, label]) => ({
-  value,
-  label,
-}));
+const listeningVariantOptions = Object.entries(STATE_VARIANTS.listening).map(
+  ([value, label]) => ({
+    value,
+    label,
+  }),
+);
 
 const processingVariantOptions = Object.entries(STATE_VARIANTS.processing).map(
   ([value, label]) => ({ value, label }),
@@ -57,10 +59,12 @@ const alarmVariantOptions = Object.entries(STATE_VARIANTS.alarm).map(([value, la
   label,
 }));
 
-const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(([value, label]) => ({
-  value,
-  label,
-}));
+const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(
+  ([value, label]) => ({
+    value,
+    label,
+  }),
+);
 
 const muteVariantOptions = Object.entries(STATE_VARIANTS.mute).map(([value, label]) => ({
   value,
@@ -196,6 +200,15 @@ const SCHEMA: HaFormSchema[] = [
     selector: {
       select: {
         options: muteVariantOptions,
+      },
+    },
+  },
+  // Doorbell → alarm/doorbell variant trigger
+  {
+    name: 'doorbell_entity',
+    selector: {
+      entity: {
+        domain: ['binary_sensor', 'input_boolean', 'switch', 'button'],
       },
     },
   },
@@ -574,11 +587,13 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
       case 'state_responding_variant':
         return 'Responding state variant';
       case 'state_alarm_variant':
-        return 'Alarm state variant';
+        return 'Alarm/Doorbell state variant';
       case 'state_countdown_variant':
         return 'Countdown state variant';
       case 'state_mute_variant':
         return 'Mute state variant';
+      case 'doorbell_entity':
+        return 'Doorbell entity (triggers Alarm/Doorbell variant)';
       case 'countdown_events':
         return 'Countdown events';
       case 'countdown_clear_events':
@@ -602,6 +617,8 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     switch (schema.name) {
       case 'asset_path':
         return 'Folder containing GIF assets (defaults to HACS path)';
+      case 'doorbell_entity':
+        return 'Binary_sensor / input_boolean / switch / button used as doorbell; when it enters an alarm-active state, the Alarm/Doorbell animation is shown';
       case 'countdown_events':
       case 'countdown_clear_events':
       case 'alarm_events':

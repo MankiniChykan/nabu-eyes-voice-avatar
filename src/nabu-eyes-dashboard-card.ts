@@ -40,6 +40,9 @@ export interface NabuEyesDashboardCardConfig extends LovelaceCardConfig {
   state_countdown_variant?: string;
   state_mute_variant?: string;
 
+  // Dedicated doorbell → alarm/doorbell variant trigger
+  doorbell_entity?: string;
+
   // Glow controls (one radius, four colour variants)
   glow_radius?: number; // px
   glow_color_blue?: string;
@@ -473,13 +476,20 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   }
 
   private _isAlarmEntityActive(): boolean {
-    if (!this._config?.alarm_entities?.length || !this.hass) return false;
+    if (!this.hass || !this._config) return false;
 
     const activeStates: ReadonlyArray<string> =
       this._config.alarm_active_states ?? DEFAULT_ALARM_ACTIVE_STATES;
 
-    return this._config.alarm_entities.some((entityId) => {
-      const stateObj = this.hass.states[entityId];
+    const sources: string[] = [
+      ...(this._config.alarm_entities ?? []),
+      ...(this._config.doorbell_entity ? [this._config.doorbell_entity] : []),
+    ];
+
+    if (!sources.length) return false;
+
+    return sources.some((entityId) => {
+      const stateObj = this.hass!.states[entityId];
       if (!stateObj) return false;
       return activeStates.includes(stateObj.state);
     });
