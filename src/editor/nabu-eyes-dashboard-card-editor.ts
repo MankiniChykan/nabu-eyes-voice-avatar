@@ -518,6 +518,11 @@ export class NabuEyesDashboardCardEditor extends LitElement implements LovelaceC
     normalizeListField('alarm_clear_events');
     normalizeListField('alarm_active_states');
 
+    // Also normalise entity lists when they happen to be provided as strings
+    normalizeListField('assist_entities');
+    normalizeListField('timer_entities');
+    normalizeListField('alarm_entities');
+
     this._config = raw;
     fireEvent(this, 'config-changed', { config: raw });
   }

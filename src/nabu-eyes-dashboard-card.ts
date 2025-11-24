@@ -101,6 +101,8 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
   private _idleDwellUntil: number | null = null;
   private _idleDwellTimeout?: number;
 
+  private _countdownTicker?: number; // 1s interval for countdown label
+
   public static properties = {
     hass: { attribute: false },
     _config: { state: true },
@@ -217,6 +219,22 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     super.disconnectedCallback();
     this._unsubscribeFromEvents();
     this._resetIdleDwell();
+
+    if (this._countdownTicker) {
+      window.clearInterval(this._countdownTicker);
+      this._countdownTicker = undefined;
+    }
+  }
+
+  public connectedCallback(): void {
+    super.connectedCallback();
+    if (!this._countdownTicker) {
+      this._countdownTicker = window.setInterval(() => {
+        if (this._config && (this._config.timer_mode ?? 'all') !== 'off') {
+          this.requestUpdate();
+        }
+      }, 1000);
+    }
   }
 
   protected updated(changedProps: Map<string | number | symbol, unknown>): void {
@@ -671,15 +689,28 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
     const timerState = activeState ?? null;
     if (!timerState) return null;
 
-    const remaining = timerState.attributes?.remaining as string | undefined;
-    if (!remaining) return null;
+    const finishesAt = timerState.attributes?.finishes_at as string | undefined;
+    let remainingSeconds: number | null = null;
 
-    const totalSeconds = this._parseDurationToSeconds(remaining);
-    if (totalSeconds <= 0) return '00:00:00';
+    if (finishesAt) {
+      const finishTime = new Date(finishesAt).getTime();
+      if (!Number.isNaN(finishTime)) {
+        const diffMs = finishTime - Date.now();
+        remainingSeconds = Math.round(diffMs / 1000);
+      }
+    }
 
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+    if (remainingSeconds === null) {
+      const remaining = timerState.attributes?.remaining as string | undefined;
+      if (!remaining) return null;
+      remainingSeconds = this._parseDurationToSeconds(remaining);
+    }
+
+    if (remainingSeconds <= 0) return '00:00:00';
+
+    const hours = Math.floor(remainingSeconds / 3600);
+    const minutes = Math.floor((remainingSeconds % 3600) / 60);
+    const seconds = remainingSeconds % 60;
 
     const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
