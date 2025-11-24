@@ -634,7 +634,7 @@ export class NabuEyesDashboardCard extends LitElement implements LovelaceCard {
 
     const states = candidateIds
       .map((id) => this.hass!.states[id])
-      .filter((s): s is typeof this.hass.states[string] => !!s);
+      .filter((s): s is (typeof this.hass.states)[string] => !!s);
 
     if (!states.length) return;
 

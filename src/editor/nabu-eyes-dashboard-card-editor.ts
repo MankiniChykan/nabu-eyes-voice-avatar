@@ -57,12 +57,10 @@ const alarmVariantOptions = Object.entries(STATE_VARIANTS.alarm).map(([value, la
   label,
 }));
 
-const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(
-  ([value, label]) => ({
-    value,
-    label,
-  }),
-);
+const countdownVariantOptions = Object.entries(STATE_VARIANTS.countdown).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const muteVariantOptions = Object.entries(STATE_VARIANTS.mute).map(([value, label]) => ({
   value,
