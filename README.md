@@ -117,29 +117,36 @@ doorbell_entity: binary_sensor.aarlo_ding_red_doorbell
   installations keep the assets under `/local/nabu_eyes_dashboard` and update this value.
 
   **Variants**:
+  
   <img width="477" height="497" alt="image" src="https://github.com/user-attachments/assets/386fba73-9c89-4cf9-84b4-071562b3232f" />
   <img width="480" height="500" alt="image" src="https://github.com/user-attachments/assets/be2e3ccc-40c7-45ce-be1d-53f80e541345" />
   <img width="472" height="494" alt="image" src="https://github.com/user-attachments/assets/372d6b5a-a824-49d4-b1e2-841ce982fece" />
 
 - **countdown_events** / **countdown_clear_events**: Home Assistant event types that toggle the
   countdown animation on or off.
+  
   <img width="573" height="675" alt="image" src="https://github.com/user-attachments/assets/267cbde9-2d69-45a5-8842-a550fbb3733f" />
   <img width="481" height="509" alt="image" src="https://github.com/user-attachments/assets/a8796735-b26e-4926-bb6a-061d2c7f5c64" />
 
 - **alarm_events** / **alarm_clear_events**: Event types that toggle the alarm animation.
+  
   <img width="560" height="400" alt="image" src="https://github.com/user-attachments/assets/96b67dde-ba53-43d5-8672-cfc4141b2638" />
 
 - **alarm_entities**: Binary entities (doorbells, switches, etc.) that can also activate the alarm
   animation when their state matches `alarm_active_states`.
+  
   <img width="581" height="665" alt="image" src="https://github.com/user-attachments/assets/a4183ba1-b187-46c2-bd95-07be0e33f1ce" />
 
 - **glow_radius**: Glow Radius behind Nabu Eyes.
+  
   <img width="576" height="84" alt="image" src="https://github.com/user-attachments/assets/b7eb322c-18ca-477c-b918-6fcc5147d153" />
 
 - **vertical_padding**: Vertical padding above and below card
+  
   <img width="575" height="91" alt="image" src="https://github.com/user-attachments/assets/3c470e30-1516-44d7-9683-36bef3ca6784" />
 
 - **variant glow colours**: Colour of glow behind variants
+  
   <img width="572" height="372" alt="image" src="https://github.com/user-attachments/assets/fb002792-5bbd-4798-8ed0-d9367435de31" />
 
 ### Development
